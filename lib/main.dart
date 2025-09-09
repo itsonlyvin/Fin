@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:t_store/features/app/screens/home/home.dart';
-import 'package:t_store/navigation_menu.dart';
+import 'package:t_store/features/authentication/screens/onboarding/onboardging.dart';
 
 import 'package:t_store/utils/theme/theme.dart';
 
@@ -20,8 +19,8 @@ class MyApp extends StatelessWidget {
         themeMode: ThemeMode.system,
         theme: TAppTheme.lightTheme,
         darkTheme: TAppTheme.darkTheme,
-        title: 'Base Code',
+        title: 'Fin',
         // The home widget is the main screen of the application.
-        home: const NavigationMenu());
+        home: const Onboardging());
   }
 }
