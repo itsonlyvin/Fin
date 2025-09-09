@@ -9,6 +9,7 @@ import 'package:t_store/features/authentication/screens/signup/signup.dart';
 import 'package:t_store/navigation_menu.dart';
 import 'package:t_store/utils/constants/image_strings.dart';
 import 'package:t_store/utils/constants/sizes.dart';
+import 'package:t_store/utils/constants/spacing.dart';
 import 'package:t_store/utils/constants/text_strings.dart';
 import 'package:t_store/utils/helpers/helper_functions.dart';
 
@@ -121,7 +122,7 @@ class LoginScreen extends StatelessWidget {
 
                     // Divider
                     const TFormDivider(
-                      dividerText1: TTexts.orSignUpWith,
+                      dividerText1: TTexts.orSignInWith,
                       dividerText2: TTexts.orGoBack,
                       isSecond: true,
                     ),

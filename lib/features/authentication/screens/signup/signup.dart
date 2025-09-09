@@ -130,9 +130,9 @@ class SignupScreen extends StatelessWidget {
                       children: [
                         TextButton(
                           onPressed: () => Get.to(
-                            () => const SignupScreen(),
+                            () => const LoginScreen(),
                           ),
-                          child: const Text(TTexts.createAccount),
+                          child: const Text(TTexts.signIn),
                         ),
                         TextButton(
                           onPressed: () => Get.to(
