@@ -39,12 +39,17 @@ class TTexts {
   static const String createAccount = "Create Account";
   static const String orSignInWith = "new user?";
   static const String orSignUpWith = "alredy have an account?";
+  static const String orGoBack = "go back?";
+  static const String or = "OR";
+  static const String home = "Home";
+
   static const String iAgreeTo = "I agree to";
   static const String privacyPolicy = "Privacy Policy";
   static const String termsOfUse = "Terms of use";
   static const String verificationCode = "verificationCode";
   static const String resendEmail = "Resend Email";
   static const String resendEmailIn = "Resend email in";
+  static const String sendEmail = "Send Email";
 
   // -- Authentication Headings
   static const String loginTitle = "Welcome back,";

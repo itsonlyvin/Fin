@@ -2,75 +2,58 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:t_store/common/widgets/custom_shapes/containers/primary_header_container.dart';
-import 'package:t_store/common/widgets/login_signup/login_signup_divider.dart';
 import 'package:t_store/features/authentication/screens/login/login.dart';
-import 'package:t_store/navigation_menu.dart';
+import 'package:t_store/features/authentication/screens/onboarding/onboardging.dart';
 import 'package:t_store/utils/constants/image_strings.dart';
 import 'package:t_store/utils/constants/sizes.dart';
-import 'package:t_store/utils/constants/spacing.dart';
 import 'package:t_store/utils/constants/text_strings.dart';
 import 'package:t_store/utils/helpers/helper_functions.dart';
+import 'package:t_store/common/widgets/login_signup/login_signup_divider.dart';
 
 class SignupScreen extends StatelessWidget {
   const SignupScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    double viewPortWidth = MediaQuery.sizeOf(context).width;
-    double viewPortHeight = MediaQuery.sizeOf(context).height;
     final dark = THelperFunctions.isDarkMode(context);
+
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            TPrimaryHeaderContainer(
-              child: Padding(
-                padding: const EdgeInsets.all(
-                  TSizes.spaceBtwSections,
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Image(
-                        height: 150,
-                        image: AssetImage(
-                            dark ? TImages.lightAppLogo : TImages.darkAppLogo),
+      body: Column(
+        children: [
+          // Header
+          TPrimaryHeaderContainer(
+            child: Padding(
+              padding: const EdgeInsets.all(TSizes.spaceBtwSections),
+              child: SizedBox(
+                width: double.infinity,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image(
+                      height: 150,
+                      image: AssetImage(
+                        dark ? TImages.lightAppLogo : TImages.darkAppLogo,
                       ),
-                      // Text(
-                      //   TTexts.loginTitle,
-                      //   style: Theme.of(context).textTheme.headlineMedium,
-                      // ),
-                      // const SizedBox(height: TSizes.sm),
-                      // Text(
-                      //   TTexts.loginSubTitle,
-                      //   style: Theme.of(context).textTheme.bodyMedium,
-                      // ),
-                      const SizedBox(height: TSizes.spaceBtwInputFields),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: TSizes.spaceBtwInputFields),
+                  ],
                 ),
               ),
             ),
+          ),
 
-            //Form
-            Padding(
-              padding: const EdgeInsets.all(
-                TSizes.spaceBtwSections,
-              ),
+          // ✅ Make form scrollable
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(TSizes.spaceBtwSections),
               child: Form(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text(
-                          TTexts.signupTitle,
-                          style: Theme.of(context).textTheme.headlineMedium,
-                        ),
-                      ],
+                    // Header text
+                    Text(
+                      TTexts.signupTitle,
+                      style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),
 
@@ -85,7 +68,6 @@ class SignupScreen extends StatelessWidget {
 
                     // Name
                     TextFormField(
-                      expands: false,
                       decoration: const InputDecoration(
                         labelText: TTexts.name,
                         prefixIcon: Icon(Iconsax.user),
@@ -102,7 +84,7 @@ class SignupScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),
 
-                    //
+                    // Phone
                     TextFormField(
                       decoration: const InputDecoration(
                         labelText: TTexts.phoneNo,
@@ -111,7 +93,7 @@ class SignupScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),
 
-                    /// Password
+                    // Password
                     TextFormField(
                       obscureText: true,
                       decoration: const InputDecoration(
@@ -122,8 +104,7 @@ class SignupScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),
 
-                    const SizedBox(height: TSizes.spaceBtwInputFields),
-
+                    // Create Account button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -136,19 +117,28 @@ class SignupScreen extends StatelessWidget {
 
                     // Divider
                     const TFormDivider(
-                      dividerText: TTexts.orSignInWith,
+                      dividerText1: TTexts.orSignUpWith,
+                      dividerText2: TTexts.orGoBack,
+                      isSecond: true,
                     ),
 
                     const SizedBox(height: TSizes.spaceBtwInputFields / 6),
 
+                    // Sign in link
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         TextButton(
                           onPressed: () => Get.to(
-                            () => const LoginScreen(),
+                            () => const SignupScreen(),
                           ),
-                          child: const Text(TTexts.signIn),
+                          child: const Text(TTexts.createAccount),
+                        ),
+                        TextButton(
+                          onPressed: () => Get.to(
+                            () => const Onboardging(),
+                          ),
+                          child: const Text(TTexts.home),
                         ),
                       ],
                     ),
@@ -156,8 +146,8 @@ class SignupScreen extends StatelessWidget {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

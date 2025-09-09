@@ -3,33 +3,52 @@ import 'package:t_store/utils/constants/colors.dart';
 import 'package:t_store/utils/helpers/helper_functions.dart';
 
 class TFormDivider extends StatelessWidget {
-  const TFormDivider({super.key, required this.dividerText});
+  const TFormDivider({
+    super.key,
+    required this.dividerText1,
+    this.dividerText2 = "",
+    this.isSecond = false,
+  });
 
-  final String dividerText;
+  final String dividerText1;
+  final String dividerText2;
+  final bool isSecond;
 
   @override
   Widget build(BuildContext context) {
     final dark = THelperFunctions.isDarkMode(context);
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Flexible(
-          child: Divider(
-            color: dark ? TColors.darkGrey : TColors.grey,
-            thickness: 0.5,
-            indent: 60,
-            endIndent: 5,
-          ),
+        // Left Divider
+        const Expanded(
+          child: Divider(thickness: 0.5, endIndent: 10),
         ),
-        Text(dividerText, style: Theme.of(context).textTheme.labelMedium),
-        Flexible(
-          child: Divider(
-            color: dark ? TColors.darkGrey : TColors.grey,
-            thickness: 0.5,
-            indent: 5,
-            endIndent: 60,
+
+        // First text
+        Text(
+          dividerText1,
+          style: Theme.of(context).textTheme.labelMedium,
+        ),
+
+        // Optional second text + divider
+        if (isSecond) ...[
+          const SizedBox(width: 8),
+          Text(
+            "|",
+            style: Theme.of(context).textTheme.labelMedium,
           ),
+          const SizedBox(width: 8),
+          Text(
+            dividerText2,
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
+        ],
+
+        // Right Divider
+        const Expanded(
+          child: Divider(thickness: 0.5, indent: 10),
         ),
       ],
     );
