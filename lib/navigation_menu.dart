@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:t_store/features/app/screens/attendance_history/attendance_history.dart';
 import 'package:t_store/features/app/screens/home/home.dart';
+import 'package:t_store/features/app/screens/notifications/notifications.dart';
+import 'package:t_store/features/app/screens/settings/settings.dart';
 
 import 'package:t_store/utils/helpers/helper_functions.dart';
 
@@ -27,9 +30,11 @@ class NavigationMenu extends StatelessWidget {
               : Colors.black.withAlpha((0.1 * 255).toInt()),
           destinations: const [
             NavigationDestination(icon: Icon(Iconsax.home), label: 'Home'),
-            NavigationDestination(icon: Icon(Iconsax.home), label: 'x'),
-            NavigationDestination(icon: Icon(Iconsax.home), label: 'x'),
-            NavigationDestination(icon: Icon(Iconsax.home), label: 'x'),
+            NavigationDestination(
+                icon: Icon(Iconsax.home), label: 'Notifications'),
+            NavigationDestination(
+                icon: Icon(Iconsax.home), label: 'AttendanceHistory'),
+            NavigationDestination(icon: Icon(Iconsax.home), label: 'Settings'),
           ],
         ),
       ),
@@ -43,5 +48,8 @@ class NavigationController extends GetxController {
 
   final screens = [
     const HomePage(),
+    const Notifications(),
+    const AttendanceHistory(),
+    const Settings(),
   ];
 }
