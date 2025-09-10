@@ -3,14 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:t_store/common/widgets/custom_shapes/containers/circular_container.dart';
 import 'package:t_store/common/widgets/custom_shapes/curved_edges/curved_edges_widgets.dart';
 import 'package:t_store/utils/constants/colors.dart';
+import 'package:t_store/utils/constants/sizes.dart';
 
 class TPrimaryHeaderContainer extends StatefulWidget {
   const TPrimaryHeaderContainer({
     super.key,
-    required this.child,
     this.showDesignContainer = false,
+    required this.logo,
+    required this.color1,
+    required this.color2,
   });
-  final Widget child;
+  final String logo;
+  final Color color1;
+  final Color color2;
+
   final bool showDesignContainer;
 
   @override
@@ -55,10 +61,8 @@ class _TPrimaryHeaderContainerState extends State<TPrimaryHeaderContainer>
           return Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: const [
-                  Color.fromARGB(255, 29, 141, 118),
-                  Color.fromARGB(255, 33, 44, 128),
-                ],
+                colors: [widget.color1, widget.color2],
+                //stops: [0.4, 0.8],
                 begin: begin,
                 end: end,
               ),
@@ -85,7 +89,32 @@ class _TPrimaryHeaderContainerState extends State<TPrimaryHeaderContainer>
                         )
                       : const SizedBox(),
                 ),
-                widget.child,
+                Padding(
+                  padding: const EdgeInsets.all(
+                    TSizes.spaceBtwSections,
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Image(
+                          height: 150,
+                          image: AssetImage(widget.logo),
+                        ),
+                        // Text(
+                        //   TTexts.loginTitle,
+                        //   style: Theme.of(context).textTheme.headlineMedium,
+                        // ),
+                        // const SizedBox(height: TSizes.sm),
+                        // Text(
+                        //   TTexts.loginSubTitle,
+                        //   style: Theme.of(context).textTheme.bodyMedium,
+                        // ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           );

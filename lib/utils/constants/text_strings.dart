@@ -10,6 +10,7 @@ class TTexts {
   static const String submit = "Submit";
   static const String appName = "FIN";
   static const String tContinue = "Continue";
+  static const String pin = "Pin";
 
   // -- OnBoarding Texts
   static const String onBoardingTitle1 = "Choose your product";
@@ -37,9 +38,9 @@ class TTexts {
   static const String forgetPassword = "Forget Password?";
   static const String signIn = "Sign In";
   static const String createAccount = "Create Account";
-  static const String orSignInWith = "new user?";
-  static const String orSignUpWith = "alredy have an account?";
-  static const String orGoBack = "go back?";
+  static const String orSignInWith = "New user?";
+  static const String orSignUpWith = "Alredy have an account?";
+  static const String orGoBack = "Go back?";
   static const String or = "OR";
   static const String home = "Home";
 

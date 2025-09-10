@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 
 class TColors {
+  // Company
+  static const Color fin1 = Color.fromRGBO(0, 65, 106, 1);
+  static const Color fin2 = Color.fromRGBO(0, 231, 255, 1);
+  static const Color op1 = Color.fromRGBO(71, 193, 195, 1);
+  static const Color op2 = Color.fromRGBO(71, 193, 195, 1);
+
   // App theme colors
   static const Color primary = Color.fromRGBO(71, 193, 195, 1);
   static const Color secondary = Color(0xFFFFE24B);

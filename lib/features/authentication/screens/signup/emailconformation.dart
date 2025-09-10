@@ -3,13 +3,14 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:t_store/common/widgets/custom_shapes/containers/primary_header_container.dart';
 import 'package:t_store/common/widgets/login_signup/login_signup_divider.dart';
+import 'package:t_store/features/authentication/screens/login/login.dart';
 import 'package:t_store/features/authentication/screens/onboarding/onboardging.dart';
 import 'package:t_store/utils/constants/sizes.dart';
 import 'package:t_store/utils/constants/text_strings.dart';
 import 'package:t_store/utils/helpers/helper_functions.dart';
 
-class Forgetpassword extends StatelessWidget {
-  const Forgetpassword(
+class EmialConformation extends StatelessWidget {
+  const EmialConformation(
       {super.key,
       required this.logo,
       required this.color1,
@@ -47,7 +48,7 @@ class Forgetpassword extends StatelessWidget {
                     Column(
                       children: [
                         Text(
-                          TTexts.forgetPassword,
+                          TTexts.confirmEmail,
                           style: Theme.of(context).textTheme.headlineMedium,
                         ),
                       ],
@@ -56,8 +57,8 @@ class Forgetpassword extends StatelessWidget {
                     // Employee Id
                     TextFormField(
                       decoration: const InputDecoration(
-                        labelText: TTexts.employeeId,
-                        prefixIcon: Icon(Iconsax.personalcard),
+                        labelText: TTexts.pin,
+                        prefixIcon: Icon(Iconsax.password_check),
                       ),
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),
@@ -65,8 +66,14 @@ class Forgetpassword extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {},
-                        child: const Text(TTexts.sendEmail),
+                        onPressed: () => Get.to(
+                          () => LoginScreen(
+                            logo: logo,
+                            color1: color1,
+                            color2: color2,
+                          ),
+                        ),
+                        child: const Text(TTexts.tContinue),
                       ),
                     ),
 

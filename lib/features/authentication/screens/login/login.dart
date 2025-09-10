@@ -7,13 +7,21 @@ import 'package:t_store/features/authentication/screens/login/forgetpassword.dar
 import 'package:t_store/features/authentication/screens/onboarding/onboardging.dart';
 import 'package:t_store/features/authentication/screens/signup/signup.dart';
 import 'package:t_store/navigation_menu.dart';
+import 'package:t_store/utils/constants/colors.dart';
 import 'package:t_store/utils/constants/image_strings.dart';
 import 'package:t_store/utils/constants/sizes.dart';
 import 'package:t_store/utils/constants/text_strings.dart';
 import 'package:t_store/utils/helpers/helper_functions.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen(
+      {super.key,
+      required this.logo,
+      required this.color1,
+      required this.color2});
+  final String logo;
+  final Color color1;
+  final Color color2;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -33,34 +41,9 @@ class _LoginScreenState extends State<LoginScreen> {
             // header sectiion
 
             TPrimaryHeaderContainer(
-              child: Padding(
-                padding: const EdgeInsets.all(
-                  TSizes.spaceBtwSections,
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Image(
-                        height: 150,
-                        image: AssetImage(
-                            dark ? TImages.lightAppLogo : TImages.darkAppLogo),
-                      ),
-                      // Text(
-                      //   TTexts.loginTitle,
-                      //   style: Theme.of(context).textTheme.headlineMedium,
-                      // ),
-                      // const SizedBox(height: TSizes.sm),
-                      // Text(
-                      //   TTexts.loginSubTitle,
-                      //   style: Theme.of(context).textTheme.bodyMedium,
-                      // ),
-                      const SizedBox(height: TSizes.spaceBtwInputFields),
-                    ],
-                  ),
-                ),
-              ),
+              logo: widget.logo,
+              color1: widget.color1,
+              color2: widget.color2,
             ),
 
             //Form
@@ -115,7 +98,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
-                          onPressed: () => Get.to(() => const Forgetpassword()),
+                          onPressed: () => Get.to(() => Forgetpassword(
+                                logo: widget.logo,
+                                color1: widget.color1,
+                                color2: widget.color2,
+                              )),
                           child: const Text(TTexts.forgetPassword),
                         ),
                       ],
@@ -147,7 +134,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         TextButton(
                           onPressed: () => Get.to(
-                            () => const SignupScreen(),
+                            () => SignupScreen(
+                              logo: widget.logo,
+                              color1: widget.color1,
+                              color2: widget.color2,
+                            ),
                           ),
                           child: const Text(TTexts.createAccount),
                         ),
