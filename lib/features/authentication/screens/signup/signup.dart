@@ -10,8 +10,15 @@ import 'package:t_store/utils/constants/text_strings.dart';
 import 'package:t_store/utils/helpers/helper_functions.dart';
 import 'package:t_store/common/widgets/login_signup/login_signup_divider.dart';
 
-class SignupScreen extends StatelessWidget {
+class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
+
+  @override
+  State<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
+  bool isVisible = false;
 
   @override
   Widget build(BuildContext context) {
@@ -95,11 +102,20 @@ class SignupScreen extends StatelessWidget {
 
                     // Password
                     TextFormField(
-                      obscureText: true,
-                      decoration: const InputDecoration(
+                      obscureText: isVisible ? false : true,
+                      decoration: InputDecoration(
                         labelText: TTexts.password,
-                        prefixIcon: Icon(Iconsax.password_check),
-                        suffix: Icon(Iconsax.eye_slash),
+                        prefixIcon: const Icon(Iconsax.password_check),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            isVisible ? Icons.visibility : Icons.visibility_off,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              isVisible = !isVisible;
+                            });
+                          },
+                        ),
                       ),
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),

@@ -9,17 +9,21 @@ import 'package:t_store/features/authentication/screens/signup/signup.dart';
 import 'package:t_store/navigation_menu.dart';
 import 'package:t_store/utils/constants/image_strings.dart';
 import 'package:t_store/utils/constants/sizes.dart';
-import 'package:t_store/utils/constants/spacing.dart';
 import 'package:t_store/utils/constants/text_strings.dart';
 import 'package:t_store/utils/helpers/helper_functions.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  bool isVisible = false;
+
+  @override
   Widget build(BuildContext context) {
-    double viewPortWidth = MediaQuery.sizeOf(context).width;
-    double viewPortHeight = MediaQuery.sizeOf(context).height;
     final dark = THelperFunctions.isDarkMode(context);
 
     return Scaffold(
@@ -88,11 +92,20 @@ class LoginScreen extends StatelessWidget {
 
                     /// Password
                     TextFormField(
-                      obscureText: true,
-                      decoration: const InputDecoration(
+                      obscureText: isVisible ? false : true,
+                      decoration: InputDecoration(
                         labelText: TTexts.password,
-                        prefixIcon: Icon(Iconsax.password_check),
-                        suffix: Icon(Iconsax.eye_slash),
+                        prefixIcon: const Icon(Iconsax.password_check),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            isVisible ? Icons.visibility : Icons.visibility_off,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              isVisible = !isVisible;
+                            });
+                          },
+                        ),
                       ),
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields / 6),

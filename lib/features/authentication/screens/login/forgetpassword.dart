@@ -4,11 +4,8 @@ import 'package:iconsax/iconsax.dart';
 import 'package:t_store/common/widgets/custom_shapes/containers/primary_header_container.dart';
 import 'package:t_store/common/widgets/login_signup/login_signup_divider.dart';
 import 'package:t_store/features/authentication/screens/onboarding/onboardging.dart';
-import 'package:t_store/features/authentication/screens/signup/signup.dart';
-import 'package:t_store/navigation_menu.dart';
 import 'package:t_store/utils/constants/image_strings.dart';
 import 'package:t_store/utils/constants/sizes.dart';
-import 'package:t_store/utils/constants/spacing.dart';
 import 'package:t_store/utils/constants/text_strings.dart';
 import 'package:t_store/utils/helpers/helper_functions.dart';
 
