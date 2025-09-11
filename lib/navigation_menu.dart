@@ -29,12 +29,22 @@ class NavigationMenu extends StatelessWidget {
               ? Colors.white.withAlpha((255 * 0.1).toInt())
               : Colors.black.withAlpha((0.1 * 255).toInt()),
           destinations: const [
-            NavigationDestination(icon: Icon(Iconsax.home), label: 'Home'),
             NavigationDestination(
-                icon: Icon(Iconsax.home), label: 'Notifications'),
+              icon: Icon(Iconsax.home),
+              label: 'Home',
+            ),
             NavigationDestination(
-                icon: Icon(Iconsax.home), label: 'AttendanceHistory'),
-            NavigationDestination(icon: Icon(Iconsax.home), label: 'Settings'),
+              icon: Icon(Iconsax.document),
+              label: 'Attendance',
+            ),
+            NavigationDestination(
+              icon: Icon(Iconsax.notification),
+              label: 'Notifications',
+            ),
+            NavigationDestination(
+              icon: Icon(Iconsax.setting),
+              label: 'Settings',
+            ),
           ],
         ),
       ),
@@ -48,8 +58,8 @@ class NavigationController extends GetxController {
 
   final screens = [
     const HomePage(),
-    const Notifications(),
     const AttendanceHistory(),
+    const Notifications(),
     const Settings(),
   ];
 }

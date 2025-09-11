@@ -23,7 +23,7 @@ class Onboardging extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () => Get.to(
                     () => const LoginScreen(
-                        logo: TImages.darkAppLogo,
+                        logo: TImages.finDarkAppLogo,
                         color1: TColors.fin1,
                         color2: TColors.fin2),
                   ),
@@ -38,11 +38,11 @@ class Onboardging extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () => Get.to(
                     () => const LoginScreen(
-                        logo: TImages.darkAppLogo,
-                        color1: Color.fromARGB(255, 255, 1, 1),
-                        color2: TColors.fin2),
+                        logo: TImages.openDarkAppLogo,
+                        color1: Color.fromARGB(255, 203, 140, 140),
+                        color2: Color.fromARGB(255, 206, 103, 197)),
                   ),
-                  child: const Text("Open Arms"),
+                  child: const Text(TTexts.companyName1),
                 ),
               ),
               const SizedBox(

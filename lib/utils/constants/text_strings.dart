@@ -2,6 +2,7 @@
 class TTexts {
   // -- COMPANY NAME
   static const String companyName = "FIN";
+  static const String companyName1 = "OPENARMS";
 
   // -- GLOBAL Texts
   static const String and = "and";

@@ -7,22 +7,21 @@ version: 1.0.0+1
 environment:
   sdk: '>=3.1.5 <4.0.0'
 
-
-
-#--------------- PACKAGES ------------------#
 dependencies:
   flutter:
     sdk: flutter
+
+
+
 
   # Utility Packages
   http: ^1.4.0
   intl: ^0.20.2
   logger: ^2.5.0
   url_launcher: ^6.3.1
-  flutter_native_splash: ^2.4.6
   smooth_page_indicator: ^1.2.1
   connectivity_plus: ^6.1.4
-  lottie: ^3.3.1 # OR RIVE
+  lottie: ^3.3.1
 
   # Icons
   iconsax: ^0.0.8
@@ -39,20 +38,18 @@ dependencies:
   capped_progress_indicator: ^0.0.2
 
   # Firebase
-  firebase_core: ^4.1.0
-  firebase_auth: ^6.0.2
-  cloud_firestore: ^6.0.1
-  firebase_storage: ^13.0.1
-
-
-
-  #--------------- ./ PACKAGES END ------------------#
+  firebase_core: ^3.13.0
+  firebase_auth: ^5.5.3
+  cloud_firestore: ^5.6.7
+  firebase_storage: ^12.4.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^6.0.0
+  flutter_lints: ^3.0.2
+  flutter_native_splash: ^2.4.6   
+
 
 
 flutter:
@@ -90,3 +87,17 @@ flutter:
           weight: 600
         - asset: assets/fonts/Poppins-Bold.ttf
           weight: 800
+
+flutter_native_splash:
+  color: "#FFFFFF"                # Background color light mode
+  color_dark: "#000000"           # Background color dark mode
+  image: assets/logos/openarms-lightmode.png
+  image_dark: assets/logos/openarms-darkmode.png
+
+
+  android_12:
+    color: "#FFFFFF"
+    color_dark: "#000000"
+    image:  assets/logos/openarms-lightmode.png
+    image_dark: assets/logos/openarms-darkmode.png
+  web: false
