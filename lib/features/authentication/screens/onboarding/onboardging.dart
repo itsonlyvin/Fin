@@ -51,7 +51,13 @@ class Onboardging extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () => Get.to(
+                    () => const LoginScreen(
+                        admin: true,
+                        logo: TImages.finDarkAppLogo,
+                        color1: TColors.fin1,
+                        color2: TColors.fin2),
+                  ),
                   child: const Text("Admin"),
                 ),
               ),

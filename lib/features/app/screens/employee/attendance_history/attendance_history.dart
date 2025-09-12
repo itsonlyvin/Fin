@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
-import 'package:t_store/features/app/screens/attendance_history/widgets/askleave.dart';
-import 'package:t_store/features/app/screens/attendance_history/widgets/news.dart';
-import 'package:t_store/features/app/screens/attendance_history/widgets/radiobutton.dart';
-import 'package:t_store/features/app/screens/attendance_history/widgets/specialColumn.dart';
+import 'package:t_store/features/app/screens/employee/attendance_history/widgets/askleave.dart';
+import 'package:t_store/features/app/screens/employee/attendance_history/widgets/news.dart';
+import 'package:t_store/features/app/screens/employee/attendance_history/widgets/radiobutton.dart';
+import 'package:t_store/features/app/screens/employee/attendance_history/widgets/specialColumn.dart';
 import 'package:t_store/utils/constants/colors.dart';
 import 'package:t_store/utils/constants/sizes.dart';
 import 'package:t_store/utils/helpers/helper_functions.dart';
@@ -142,26 +142,14 @@ class AttendanceHistory extends StatelessWidget {
                               precentageString: '70',
                               data: 'Atteandace',
                             ),
-                            const VerticalDivider(
-                              color: Colors.black26,
-                              thickness: 0.5,
-                              width: 20, // space it occupies horizontally
-                              indent: 10, // top spacing
-                              endIndent: 10, // bottom spacing
-                            ),
+                            DividerVertical(),
                             PrecentIndicator(
                               dark: dark,
                               precentage: 0.7,
                               precentageString: '70',
                               data: 'Leave Taken',
                             ),
-                            const VerticalDivider(
-                              color: Colors.black26,
-                              thickness: 0.5,
-                              width: 20, // space it occupies horizontally
-                              indent: 10, // top spacing
-                              endIndent: 10, // bottom spacing
-                            ),
+                            DividerVertical(),
                             PrecentIndicator(
                               dark: dark,
                               precentage: 0.7,
@@ -219,8 +207,14 @@ class DividerVertical extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const VerticalDivider(
-      color: Colors.black26,
+    final dark = THelperFunctions.isDarkMode(context);
+
+    return VerticalDivider(
+      color:
+          // Dark card color
+          dark
+              ? Colors.grey.withValues(alpha: 0.3)
+              : Colors.black.withValues(alpha: 0.5),
       thickness: 0.5,
       width: 20, // space it occupies horizontally
       indent: 0, // top spacing
@@ -300,7 +294,7 @@ class PrecentIndicator extends StatelessWidget {
           padding: const EdgeInsets.only(top: TSizes.sm),
           child: Text(
             data,
-            style: TextStyle(fontSize: 10),
+            style: const TextStyle(fontSize: 10),
           ),
         ),
       ),

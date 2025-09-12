@@ -1,19 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:t_store/features/app/screens/attendance_history/attendance_history.dart';
-import 'package:t_store/features/app/screens/home/home.dart';
-import 'package:t_store/features/app/screens/notifications/notifications.dart';
-import 'package:t_store/features/app/screens/settings/profile.dart';
+import 'package:t_store/features/app/screens/employee/attendance_history/attendance_history.dart';
+import 'package:t_store/features/app/screens/employee/home/home.dart';
+import 'package:t_store/features/app/screens/employee/notifications/notifications.dart';
+import 'package:t_store/features/app/screens/employee/profile/profile.dart';
+import 'package:t_store/features/app/screens/admin/home/home_admin.dart';
+import 'package:t_store/features/app/screens/admin/employee/employee.dart';
+import 'package:t_store/features/app/screens/admin/notifications/notifications_admin.dart';
 import 'package:t_store/utils/helpers/helper_functions.dart';
 
 class NavigationMenu extends StatelessWidget {
-  const NavigationMenu({super.key});
+  const NavigationMenu({
+    super.key,
+    this.admin = false,
+  });
+
+  final bool admin;
 
   @override
   Widget build(BuildContext context) {
-    // Use existing controller (created in main.dart or bindings)
-    final controller = Get.find<NavigationController>();
+    // Inject controller with proper config
+    final controller = Get.put(NavigationController(admin: admin));
     final darkMode = THelperFunctions.isDarkMode(context);
 
     return Scaffold(
@@ -66,11 +74,25 @@ class NavigationMenu extends StatelessWidget {
 
 class NavigationController extends GetxController {
   final Rx<int> selectedIndex = 0.obs;
+  late final List<Widget> screens;
 
-  final screens = const [
-    HomePage(),
-    AttendanceHistory(),
-    Notifications(),
-    ProfileScreen(),
-  ];
+  NavigationController({required bool admin}) {
+    if (admin) {
+      // Admin screens
+      screens = [
+        const HomePageAdmin(),
+        const EmployeeAdmin(),
+        const NotificationsAdmin(),
+        const ProfileScreen(),
+      ];
+    } else {
+      // Employee screens
+      screens = [
+        const HomePage(),
+        const AttendanceHistory(),
+        const Notifications(),
+        const ProfileScreen(),
+      ];
+    }
+  }
 }

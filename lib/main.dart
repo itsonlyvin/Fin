@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:t_store/features/authentication/screens/onboarding/onboardging.dart';
-import 'package:t_store/navigation_menu.dart';
 import 'package:t_store/utils/theme/theme.dart';
 
 void main() {
-  // Register NavigationController globally when the app starts
-  Get.put(NavigationController());
-
   runApp(const MyApp());
 }
 
@@ -23,9 +19,9 @@ class MyApp extends StatelessWidget {
       darkTheme: TAppTheme.darkTheme,
       title: 'Fin',
       home: const Onboardging(),
-      // 👆 Currently starting with Onboarding screen
-      // If you want to start directly at the nav menu, use:
-      // home: const NavigationMenu(),
+      // If you want to skip onboarding:
+      // home: NavigationMenu(admin: false), // employee
+      // home: NavigationMenu(admin: true),  // admin
     );
   }
 }

@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:t_store/common/widgets/custom_shapes/containers/primary_header_container.dart';
-import 'package:t_store/features/authentication/screens/login/login.dart';
 import 'package:t_store/features/authentication/screens/onboarding/onboardging.dart';
 import 'package:t_store/features/authentication/screens/signup/emailconformation.dart';
-import 'package:t_store/utils/constants/image_strings.dart';
 import 'package:t_store/utils/constants/sizes.dart';
 import 'package:t_store/utils/constants/text_strings.dart';
-import 'package:t_store/utils/helpers/helper_functions.dart';
+
 import 'package:t_store/common/widgets/login_signup/login_signup_divider.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -17,10 +15,12 @@ class SignupScreen extends StatefulWidget {
     required this.logo,
     required this.color1,
     required this.color2,
+    this.admin = false,
   });
   final String logo;
   final Color color1;
   final Color color2;
+  final bool admin;
 
   @override
   State<SignupScreen> createState() => _SignupScreenState();
@@ -31,8 +31,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final dark = THelperFunctions.isDarkMode(context);
-
     return Scaffold(
       body: Column(
         children: [
@@ -43,7 +41,6 @@ class _SignupScreenState extends State<SignupScreen> {
             color2: widget.color2,
           ),
 
-          // ✅ Make form scrollable
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
@@ -61,9 +58,10 @@ class _SignupScreenState extends State<SignupScreen> {
 
                     // Employee Id
                     TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: TTexts.employeeId,
-                        prefixIcon: Icon(Iconsax.personalcard),
+                      decoration: InputDecoration(
+                        labelText:
+                            widget.admin ? TTexts.adminId : TTexts.employeeId,
+                        prefixIcon: const Icon(Iconsax.personalcard),
                       ),
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),

@@ -7,22 +7,20 @@ import 'package:t_store/features/authentication/screens/login/forgetpassword.dar
 import 'package:t_store/features/authentication/screens/onboarding/onboardging.dart';
 import 'package:t_store/features/authentication/screens/signup/signup.dart';
 import 'package:t_store/navigation_menu.dart';
-import 'package:t_store/utils/constants/colors.dart';
-import 'package:t_store/utils/constants/image_strings.dart';
 import 'package:t_store/utils/constants/sizes.dart';
 import 'package:t_store/utils/constants/text_strings.dart';
-import 'package:t_store/utils/helpers/helper_functions.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen(
       {super.key,
       required this.logo,
       required this.color1,
-      required this.color2});
+      required this.color2,
+      this.admin = false});
   final String logo;
   final Color color1;
   final Color color2;
-
+  final bool admin;
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -32,8 +30,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final dark = THelperFunctions.isDarkMode(context);
-
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -66,9 +62,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: TSizes.spaceBtwInputFields),
                     // Employee Id
                     TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: TTexts.employeeId,
-                        prefixIcon: Icon(Iconsax.personalcard),
+                      decoration: InputDecoration(
+                        labelText:
+                            widget.admin ? TTexts.adminId : TTexts.employeeId,
+                        prefixIcon: const Icon(Iconsax.personalcard),
                       ),
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),
@@ -113,7 +110,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () => Get.to(() => const NavigationMenu()),
+                        onPressed: () => Get.to(
+                          () => NavigationMenu(
+                            admin: widget.admin ? true : false,
+                          ),
+                        ),
                         child: const Text(TTexts.signIn),
                       ),
                     ),
@@ -135,6 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextButton(
                           onPressed: () => Get.to(
                             () => SignupScreen(
+                              admin: widget.admin ? true : false,
                               logo: widget.logo,
                               color1: widget.color1,
                               color2: widget.color2,

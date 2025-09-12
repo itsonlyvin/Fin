@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:t_store/common/widgets/appbar/appbar.dart';
 import 'package:t_store/common/widgets/images/t_circular_image.dart';
-import 'package:t_store/features/app/screens/settings/widgets/header.dart';
-import 'package:t_store/features/app/screens/settings/widgets/profile.dart';
+import 'package:t_store/features/app/screens/employee/profile/widgets/header.dart';
+import 'package:t_store/features/app/screens/employee/profile/widgets/profile.dart';
+import 'package:t_store/features/authentication/screens/onboarding/onboardging.dart';
 import 'package:t_store/utils/constants/image_strings.dart';
 import 'package:t_store/utils/constants/sizes.dart';
 
@@ -113,7 +115,9 @@ class ProfileScreen extends StatelessWidget {
               ),
               Center(
                 child: TextButton(
-                    onPressed: () {},
+                    onPressed: () => Get.to(
+                          () => const Onboardging(),
+                        ),
                     child: const Text(
                       'Log Out',
                       style: TextStyle(color: Colors.red),
