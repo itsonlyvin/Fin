@@ -43,7 +43,7 @@ class HomePage extends StatelessWidget {
                   "Welcome 👋",
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
-                const Icon(Iconsax.notification, size: 28),
+                //  const Icon(Iconsax.notification, size: 28),
               ],
             ),
 

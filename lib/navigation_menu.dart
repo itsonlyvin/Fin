@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:t_store/features/app/screens/admin/home/pages/admin%20home.dart';
+import 'package:t_store/features/app/screens/admin/home/pages/home_attendance.dart';
 import 'package:t_store/features/app/screens/employee/attendance_history/attendance_history.dart';
 import 'package:t_store/features/app/screens/employee/home/home.dart';
 import 'package:t_store/features/app/screens/employee/notifications/notifications.dart';
@@ -80,7 +82,7 @@ class NavigationController extends GetxController {
     if (admin) {
       // Admin screens
       screens = [
-        const HomePageAdmin(),
+        const AdminHome(),
         const EmployeeAdmin(),
         const NotificationsAdmin(),
         const ProfileScreen(),
