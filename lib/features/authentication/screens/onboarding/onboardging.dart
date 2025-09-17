@@ -24,9 +24,11 @@ class Onboardging extends StatelessWidget {
             GestureDetector(
               onTap: () => Get.to(
                 () => const LoginScreen(
-                    logo: TImages.finDarkAppLogo,
-                    color1: TColors.fin1,
-                    color2: TColors.fin2),
+                  logo: TImages.finDarkAppLogo,
+                  color1: TColors.fin1,
+                  color2: TColors.fin2,
+                  isfin: true,
+                ),
               ),
               child: SpecialColumn(
                 dark: dark,
@@ -42,9 +44,11 @@ class Onboardging extends StatelessWidget {
             GestureDetector(
               onTap: () => Get.to(
                 () => const LoginScreen(
-                    logo: TImages.openDarkAppLogo,
-                    color1: Color.fromARGB(255, 203, 140, 140),
-                    color2: Color.fromARGB(255, 206, 103, 197)),
+                  logo: TImages.openDarkAppLogo,
+                  color1: Color.fromARGB(255, 203, 140, 140),
+                  color2: Color.fromARGB(255, 206, 103, 197),
+                  isfin: false,
+                ),
               ),
               child: SpecialColumn(
                 dark: dark,
@@ -60,10 +64,12 @@ class Onboardging extends StatelessWidget {
             GestureDetector(
               onTap: () => Get.to(
                 () => const LoginScreen(
-                    admin: true,
-                    logo: TImages.finDarkAppLogo,
-                    color1: TColors.fin1,
-                    color2: TColors.fin2),
+                  admin: true,
+                  logo: TImages.finDarkAppLogo,
+                  color1: TColors.fin1,
+                  color2: TColors.fin2,
+                  isfin: true,
+                ),
               ),
               child: SpecialColumn(
                   dark: dark,

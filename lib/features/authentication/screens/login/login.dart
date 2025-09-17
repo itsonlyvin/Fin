@@ -16,11 +16,13 @@ class LoginScreen extends StatefulWidget {
       required this.logo,
       required this.color1,
       required this.color2,
-      this.admin = false});
+      this.admin = false,
+      required this.isfin});
   final String logo;
   final Color color1;
   final Color color2;
   final bool admin;
+  final bool isfin;
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -140,6 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               logo: widget.logo,
                               color1: widget.color1,
                               color2: widget.color2,
+                              isfin: widget.isfin,
                             ),
                           ),
                           child: const Text(TTexts.createAccount),
