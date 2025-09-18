@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:t_store/employee_controller.dart';
 import 'package:t_store/common/widgets/custom_shapes/containers/primary_header_container.dart';
 import 'package:t_store/common/widgets/login_signup/login_signup_divider.dart';
 import 'package:t_store/features/authentication/screens/login/forgetpassword.dart';
@@ -39,10 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     if (_employeeIdController.text.trim().isEmpty ||
         _passwordController.text.trim().isEmpty) {
-      Get.snackbar(
-        "Error",
-        "Employee ID and Password required",
-      );
+      Get.snackbar("Error", "Employee ID and Password required");
       return;
     }
 
@@ -55,24 +54,27 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response.statusCode == 200) {
-        Get.snackbar(
-          "Success",
-          response.body,
-        );
+        final empId = _employeeIdController.text.trim();
 
-        // ✅ Navigate to home if login successful
-        Get.off(() => NavigationMenu(admin: widget.admin));
+        // Save in GetX controller (for current session)
+        final empController = Get.put(EmployeeController());
+        empController.setEmpId(empId);
+
+        // Save in local storage (for persistence)
+        final storage = GetStorage();
+        storage.write("isLoggedIn", true);
+        storage.write("isAdmin", widget.admin);
+        storage.write("empId", empId);
+
+        Get.snackbar("Success", response.body);
+
+        // Navigate to home
+        Get.offAll(() => NavigationMenu(admin: widget.admin));
       } else {
-        Get.snackbar(
-          "Login Failed",
-          response.body,
-        );
+        Get.snackbar("Login Failed", response.body);
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        e.toString(),
-      );
+      Get.snackbar("Error", e.toString());
     } finally {
       setState(() => _loading = false);
     }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:t_store/common/widgets/appbar/appbar.dart';
 import 'package:t_store/common/widgets/images/t_circular_image.dart';
@@ -12,6 +13,12 @@ import 'package:t_store/utils/constants/sizes.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
+  void _logout() {
+    final storage = GetStorage();
+    storage.erase(); // clear all saved login data
+    Get.offAll(() => const Onboardging()); // redirect to onboarding
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,8 +26,6 @@ class ProfileScreen extends StatelessWidget {
         showBackArrow: false,
         title: Text('Profile'),
       ),
-
-      /// Body
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(TSizes.defaultSpace),
@@ -44,51 +49,16 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
 
-              /// Details
-              const SizedBox(
-                height: TSizes.spaceBtwItems / 2,
-              ),
+              const SizedBox(height: TSizes.spaceBtwItems / 2),
               const Divider(),
-              // const SizedBox(
-              //   height: TSizes.spaceBtwItems,
-              // ),
-
-              // /// Heading Profile Info
-              // const TSectionHeading(
-              //   title: 'Profile Informations',
-              //   showActionButton: false,
-              // ),
-              // const SizedBox(
-              //   height: TSizes.spaceBtwItems,
-              // ),
-
-              // TProfileMenu(
-              //   onPressed: () {},
-              //   title: 'Name',
-              //   value: 'Texts Texts ',
-              // ),
-              // TProfileMenu(
-              //   onPressed: () {},
-              //   title: 'Usernmae',
-              //   value: 'Texts Texts ',
-              // ),
-
-              // const SizedBox(
-              //   height: TSizes.spaceBtwItems / 2,
-              // ),
-              // const Divider(),
-              // const SizedBox(
-              //   height: TSizes.spaceBtwItems,
-              // ),
 
               /// Heading Personal Info
               const TSectionHeading(
                 title: 'Personal Informations',
                 showActionButton: false,
               ),
-              const SizedBox(
-                height: TSizes.spaceBtwItems,
-              ),
+              const SizedBox(height: TSizes.spaceBtwItems),
+
               TProfileMenu(
                 onPressed: () {},
                 title: 'Name',
@@ -104,25 +74,20 @@ class ProfileScreen extends StatelessWidget {
                   onPressed: () {}, title: 'E-mail', value: 'mial@gamil.com'),
               TProfileMenu(
                   onPressed: () {}, title: 'Phone Number', value: '1234567890'),
-              // TProfileMenu(onPressed: () {}, title: 'Gender', value: 'Male'),
-              // TProfileMenu(
-              //     onPressed: () {},
-              //     title: 'Date of Birth',
-              //     value: '10 Dec, 1996'),
+
               const Divider(),
-              const SizedBox(
-                height: TSizes.spaceBtwItems,
-              ),
+              const SizedBox(height: TSizes.spaceBtwItems),
+
+              /// Logout Button
               Center(
                 child: TextButton(
-                    onPressed: () => Get.to(
-                          () => const Onboardging(),
-                        ),
-                    child: const Text(
-                      'Log Out',
-                      style: TextStyle(color: Colors.red),
-                    )),
-              )
+                  onPressed: _logout,
+                  child: const Text(
+                    'Log Out',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ),
             ],
           ),
         ),

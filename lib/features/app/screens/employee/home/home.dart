@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:t_store/employee_controller.dart';
 import 'package:t_store/utils/constants/sizes.dart';
 import 'package:t_store/utils/helpers/helper_functions.dart';
 
@@ -10,7 +12,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = THelperFunctions.isDarkMode(context);
-
+    final empController = Get.find<EmployeeController>();
     // Dynamic Time & Date
     final now = DateTime.now();
     final formattedTime = DateFormat('hh:mm a').format(now);
@@ -40,7 +42,7 @@ class HomePage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Welcome 👋",
+                  "Welcome 👋 ${empController.empId.value}",
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 //  const Icon(Iconsax.notification, size: 28),
