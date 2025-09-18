@@ -3,14 +3,14 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:t_store/common/widgets/custom_shapes/containers/primary_header_container.dart';
 import 'package:t_store/common/widgets/login_signup/login_signup_divider.dart';
-import 'package:t_store/features/authentication/screens/login/services/forget_password_service.dart';
-import 'package:t_store/features/authentication/screens/login/updatepassword.dart';
+import 'package:t_store/features/authentication/screens/login/login.dart';
+import 'package:t_store/features/authentication/screens/login/services/update_password_service.dart';
 import 'package:t_store/features/authentication/screens/onboarding/onboardging.dart';
 import 'package:t_store/utils/constants/sizes.dart';
 import 'package:t_store/utils/constants/text_strings.dart';
 
-class Forgetpassword extends StatefulWidget {
-  const Forgetpassword({
+class Updatepassword extends StatefulWidget {
+  const Updatepassword({
     super.key,
     required this.logo,
     required this.color1,
@@ -22,19 +22,23 @@ class Forgetpassword extends StatefulWidget {
   final Color color1;
   final Color color2;
   final bool isfin;
+
   @override
-  State<Forgetpassword> createState() => _ForgetpasswordState();
+  State<Updatepassword> createState() => _UpdatepasswordState();
 }
 
-class _ForgetpasswordState extends State<Forgetpassword> {
-  final TextEditingController _employeeIdController = TextEditingController();
+class _UpdatepasswordState extends State<Updatepassword> {
+  final TextEditingController _codeController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _loading = false;
+  bool _isVisible = false;
 
-  Future<void> _sendResetCode() async {
-    if (_employeeIdController.text.trim().isEmpty) {
+  Future<void> _updatePassword() async {
+    if (_codeController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty) {
       Get.snackbar(
         "Error",
-        "Please enter Employee ID",
+        "Code and Password are required",
       );
       return;
     }
@@ -42,8 +46,9 @@ class _ForgetpasswordState extends State<Forgetpassword> {
     setState(() => _loading = true);
 
     try {
-      final response = await ForgetPasswordService.sendResetCode(
-        _employeeIdController.text.trim(),
+      final response = await UpdatePasswordService.addNewPassword(
+        _codeController.text.trim(),
+        _passwordController.text.trim(),
       );
 
       if (response.statusCode == 200) {
@@ -52,8 +57,8 @@ class _ForgetpasswordState extends State<Forgetpassword> {
           response.body,
         );
 
-        // Navigate to Update Password screen
-        Get.to(() => Updatepassword(
+        // Navigate to login page
+        Get.off(() => LoginScreen(
               logo: widget.logo,
               color1: widget.color1,
               color2: widget.color2,
@@ -95,17 +100,43 @@ class _ForgetpasswordState extends State<Forgetpassword> {
                 child: Column(
                   children: [
                     Text(
-                      TTexts.forgetPassword,
+                      "Update Password",
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),
 
-                    // Employee ID input
+                    // Code input
                     TextFormField(
-                      controller: _employeeIdController,
+                      controller: _codeController,
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
                       decoration: const InputDecoration(
-                        labelText: TTexts.employeeId,
-                        prefixIcon: Icon(Iconsax.personalcard),
+                        labelText: "Reset Code",
+                        prefixIcon: Icon(Iconsax.key),
+                        counterText: "",
+                      ),
+                    ),
+                    const SizedBox(height: TSizes.spaceBtwInputFields),
+
+                    // Password input
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: !_isVisible,
+                      decoration: InputDecoration(
+                        labelText: TTexts.password,
+                        prefixIcon: const Icon(Iconsax.password_check),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isVisible = !_isVisible;
+                            });
+                          },
+                        ),
                       ),
                     ),
 
@@ -115,7 +146,7 @@ class _ForgetpasswordState extends State<Forgetpassword> {
                       width: double.infinity,
                       height: 60,
                       child: ElevatedButton(
-                        onPressed: _loading ? null : _sendResetCode,
+                        onPressed: _loading ? null : _updatePassword,
                         child: _loading
                             ? const SizedBox(
                                 height: 24,
@@ -125,7 +156,7 @@ class _ForgetpasswordState extends State<Forgetpassword> {
                                   color: Colors.white,
                                 ),
                               )
-                            : const Text(TTexts.sendEmail),
+                            : const Text("Update Password"),
                       ),
                     ),
 
@@ -133,8 +164,6 @@ class _ForgetpasswordState extends State<Forgetpassword> {
 
                     // Divider
                     const TFormDivider(dividerText1: TTexts.orGoBack),
-
-                    const SizedBox(height: TSizes.spaceBtwInputFields / 6),
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
