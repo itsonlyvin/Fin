@@ -16,13 +16,14 @@ class Updatepassword extends StatefulWidget {
     required this.color1,
     required this.color2,
     required this.isfin,
+    required this.admin,
   });
 
   final String logo;
   final Color color1;
   final Color color2;
   final bool isfin;
-
+  final bool admin; // NEW: Admin flag
   @override
   State<Updatepassword> createState() => _UpdatepasswordState();
 }
@@ -36,26 +37,25 @@ class _UpdatepasswordState extends State<Updatepassword> {
   Future<void> _updatePassword() async {
     if (_codeController.text.trim().isEmpty ||
         _passwordController.text.trim().isEmpty) {
-      Get.snackbar(
-        "Error",
-        "Code and Password are required",
-      );
+      Get.snackbar("Error", "Code and Password are required");
       return;
     }
 
     setState(() => _loading = true);
 
     try {
-      final response = await UpdatePasswordService.addNewPassword(
-        _codeController.text.trim(),
-        _passwordController.text.trim(),
-      );
+      final response = widget.admin
+          ? await UpdatePasswordService.addAdminNewPassword(
+              _codeController.text.trim(),
+              _passwordController.text.trim(),
+            )
+          : await UpdatePasswordService.addEmployeeNewPassword(
+              _codeController.text.trim(),
+              _passwordController.text.trim(),
+            );
 
       if (response.statusCode == 200) {
-        Get.snackbar(
-          "Success",
-          response.body,
-        );
+        Get.snackbar("Success", response.body);
 
         // Navigate to login page
         Get.off(() => LoginScreen(
@@ -63,18 +63,13 @@ class _UpdatepasswordState extends State<Updatepassword> {
               color1: widget.color1,
               color2: widget.color2,
               isfin: widget.isfin,
+              admin: widget.admin, // pass admin flag
             ));
       } else {
-        Get.snackbar(
-          "Failed",
-          response.body,
-        );
+        Get.snackbar("Failed", response.body);
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        e.toString(),
-      );
+      Get.snackbar("Error", e.toString());
     } finally {
       setState(() => _loading = false);
     }
@@ -86,21 +81,20 @@ class _UpdatepasswordState extends State<Updatepassword> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // header section
             TPrimaryHeaderContainer(
               logo: widget.logo,
               color1: widget.color1,
               color2: widget.color2,
             ),
-
-            // form
             Padding(
               padding: const EdgeInsets.all(TSizes.spaceBtwSections),
               child: Form(
                 child: Column(
                   children: [
                     Text(
-                      "Update Password",
+                      widget.admin
+                          ? "Update Admin Password"
+                          : "Update Password",
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),
@@ -162,7 +156,6 @@ class _UpdatepasswordState extends State<Updatepassword> {
 
                     const SizedBox(height: TSizes.spaceBtwInputFields * 1.8),
 
-                    // Divider
                     const TFormDivider(dividerText1: TTexts.orGoBack),
 
                     Row(

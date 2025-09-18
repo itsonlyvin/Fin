@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -22,6 +24,7 @@ class LoginScreen extends StatefulWidget {
     this.admin = false,
     required this.isfin,
   });
+
   final String logo;
   final Color color1;
   final Color color2;
@@ -33,48 +36,66 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _employeeIdController = TextEditingController();
+  final TextEditingController _idController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool isVisible = false;
   bool _loading = false;
 
+  /// 🔹 Login function
   Future<void> _login() async {
-    if (_employeeIdController.text.trim().isEmpty ||
+    if (_idController.text.trim().isEmpty ||
         _passwordController.text.trim().isEmpty) {
-      Get.snackbar("Error", "Employee ID and Password required");
+      Get.snackbar("Error", "ID and Password are required");
       return;
     }
 
     setState(() => _loading = true);
 
     try {
-      final response = await LoginService.login(
-        _employeeIdController.text.trim(),
-        _passwordController.text.trim(),
-      );
+      final response = widget.admin
+          ? await LoginService.loginAdmin(
+              _idController.text.trim(),
+              _passwordController.text.trim(),
+            )
+          : await LoginService.loginEmployee(
+              _idController.text.trim(),
+              _passwordController.text.trim(),
+            );
 
       if (response.statusCode == 200) {
-        final empId = _employeeIdController.text.trim();
-
-        // Save in GetX controller (for current session)
+        final empId = _idController.text.trim();
         final empController = Get.put(EmployeeController());
-        empController.setEmpId(empId);
 
-        // Save in local storage (for persistence)
+        // Save ID & flags
+        empController.setEmpId(empId);
+        empController.setIsFin(widget.isfin);
+        if (widget.admin) empController.setAdminId(empId);
+
         final storage = GetStorage();
         storage.write("isLoggedIn", true);
         storage.write("isAdmin", widget.admin);
         storage.write("empId", empId);
+        storage.write("isFin", widget.isfin);
+        if (widget.admin) storage.write("adminId", empId);
+
+        // ✅ Fetch details from backend
+        final detailsResponse = widget.admin
+            ? await LoginService.getAdminDetails(empId)
+            : await LoginService.getEmployeeDetails(empId);
+
+        if (detailsResponse.statusCode == 200) {
+          final data = jsonDecode(detailsResponse.body);
+          empController.setDetails(data); // save in GetX
+          storage.write("details", data); // optional: persist
+        }
 
         Get.snackbar("Success", response.body);
-
-        // Navigate to home
         Get.offAll(() => NavigationMenu(admin: widget.admin));
       } else {
         Get.snackbar("Login Failed", response.body);
       }
     } catch (e) {
-      Get.snackbar("Error", e.toString());
+      Get.snackbar("Error", "Server not reachable or error: $e");
     } finally {
       setState(() => _loading = false);
     }
@@ -86,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // header
+            // Header
             TPrimaryHeaderContainer(
               logo: widget.logo,
               color1: widget.color1,
@@ -98,15 +119,16 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Form(
                 child: Column(
                   children: [
+                    // Title
                     Text(
-                      TTexts.loginTitle,
+                      widget.admin ? "Admin Login" : TTexts.loginTitle,
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),
 
-                    // Employee Id
+                    // Employee/Admin ID
                     TextFormField(
-                      controller: _employeeIdController,
+                      controller: _idController,
                       decoration: InputDecoration(
                         labelText:
                             widget.admin ? TTexts.adminId : TTexts.employeeId,
@@ -147,6 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color1: widget.color1,
                                 color2: widget.color2,
                                 isfin: widget.isfin,
+                                admin: widget.admin,
                               )),
                           child: const Text(TTexts.forgetPassword),
                         ),

@@ -10,14 +10,15 @@ import 'package:t_store/utils/constants/colors.dart';
 import 'package:t_store/utils/constants/sizes.dart';
 import 'package:t_store/utils/constants/text_strings.dart';
 
-class EmialConformation extends StatefulWidget {
-  const EmialConformation({
+class EmailConfirmation extends StatefulWidget {
+  const EmailConfirmation({
     super.key,
     required this.logo,
     required this.color1,
     required this.color2,
     required this.email,
     required this.isfin,
+    this.admin = false,
   });
 
   final String logo;
@@ -25,12 +26,13 @@ class EmialConformation extends StatefulWidget {
   final Color color2;
   final String email;
   final bool isfin;
+  final bool admin;
 
   @override
-  State<EmialConformation> createState() => _EmialConformationState();
+  State<EmailConfirmation> createState() => _EmailConfirmationState();
 }
 
-class _EmialConformationState extends State<EmialConformation> {
+class _EmailConfirmationState extends State<EmailConfirmation> {
   final TextEditingController _pinController = TextEditingController();
   bool _loading = false;
 
@@ -38,24 +40,19 @@ class _EmialConformationState extends State<EmialConformation> {
   Future<void> _verifyPin() async {
     final pin = _pinController.text.trim();
     if (pin.length != 4) {
-      Get.snackbar(
-        "Error",
-        "Enter a valid 4-digit code",
-      );
+      Get.snackbar("Error", "Enter a valid 4-digit code");
       return;
     }
 
     setState(() => _loading = true);
 
     try {
-      final response = await ApiService.verifyEmail(widget.email, pin);
+      final response = widget.admin
+          ? await ApiService.verifyAdminEmail(widget.email, pin)
+          : await ApiService.verifyEmployeeEmail(widget.email, pin);
 
       if (response.statusCode == 200) {
-        Get.snackbar(
-          "Success",
-          "Email Verified!",
-        );
-
+        Get.snackbar("Success", "Email Verified!");
         Get.offAll(() => LoginScreen(
               logo: widget.logo,
               color1: widget.color1,
@@ -63,16 +60,10 @@ class _EmialConformationState extends State<EmialConformation> {
               isfin: widget.isfin,
             ));
       } else {
-        Get.snackbar(
-          "Failed",
-          response.body,
-        );
+        Get.snackbar("Failed", response.body);
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        "Server not reachable",
-      );
+      Get.snackbar("Error", "Server not reachable");
     } finally {
       setState(() => _loading = false);
     }
@@ -83,24 +74,17 @@ class _EmialConformationState extends State<EmialConformation> {
     setState(() => _loading = true);
 
     try {
-      final response = await ApiService.resendVerification(widget.email);
+      final response = widget.admin
+          ? await ApiService.resendAdminVerification(widget.email)
+          : await ApiService.resendEmployeeVerification(widget.email);
 
       if (response.statusCode == 200) {
-        Get.snackbar(
-          "Resent",
-          "New code sent to ${widget.email}",
-        );
+        Get.snackbar("Resent", "New code sent to ${widget.email}");
       } else {
-        Get.snackbar(
-          "Failed",
-          response.body,
-        );
+        Get.snackbar("Failed", response.body);
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        "Server not reachable",
-      );
+      Get.snackbar("Error", "Server not reachable");
     } finally {
       setState(() => _loading = false);
     }
@@ -121,8 +105,10 @@ class _EmialConformationState extends State<EmialConformation> {
               padding: const EdgeInsets.all(TSizes.spaceBtwSections),
               child: Column(
                 children: [
-                  Text(TTexts.confirmEmail,
-                      style: Theme.of(context).textTheme.headlineMedium),
+                  Text(
+                    TTexts.confirmEmail,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
                   const SizedBox(height: TSizes.spaceBtwInputFields),
 
                   /// PIN input
@@ -141,7 +127,6 @@ class _EmialConformationState extends State<EmialConformation> {
                   /// Verify Button
                   SizedBox(
                     width: double.infinity,
-                    //  height: 50,
                     child: ElevatedButton(
                       onPressed: _loading ? null : _verifyPin,
                       child: _loading

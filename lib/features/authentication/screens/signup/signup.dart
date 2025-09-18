@@ -31,14 +31,14 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   bool isVisible = false;
-  bool _loading = false; // 🔹 loading state
+  bool _loading = false;
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _employeeId = TextEditingController();
-  final TextEditingController _name = TextEditingController();
-  final TextEditingController _email = TextEditingController();
-  final TextEditingController _phone = TextEditingController();
-  final TextEditingController _password = TextEditingController();
+  final TextEditingController _idController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   final bool finOpenArms = true;
 
@@ -49,23 +49,38 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _loading = true);
 
     try {
-      final result = await EmployeeService.registerEmployee(
-        employeeId: _employeeId.text.trim(),
-        fullName: _name.text.trim(),
-        email: _email.text.trim(),
-        phone: _phone.text.trim(),
-        password: _password.text.trim(),
-        finOpenArms: finOpenArms,
-      );
+      Map<String, dynamic> result;
+
+      if (widget.admin) {
+        // Call admin registration
+        result = await AuthService.registerAdmin(
+          adminId: _idController.text.trim(),
+          fullName: _nameController.text.trim(),
+          email: _emailController.text.trim(),
+          phone: _phoneController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+      } else {
+        // Call employee registration
+        result = await AuthService.registerEmployee(
+          employeeId: _idController.text.trim(),
+          fullName: _nameController.text.trim(),
+          email: _emailController.text.trim(),
+          phone: _phoneController.text.trim(),
+          password: _passwordController.text.trim(),
+          finOpenArms: finOpenArms,
+        );
+      }
 
       if (result['success'] == true) {
         Get.snackbar("Success", result['message']);
-        Get.to(() => EmialConformation(
+        Get.to(() => EmailConfirmation(
               logo: widget.logo,
               color1: widget.color1,
               color2: widget.color2,
-              email: _email.text.trim(),
+              email: _emailController.text.trim(),
               isfin: widget.isfin,
+              admin: widget.admin,
             ));
       } else {
         Get.snackbar("Error", result['message']);
@@ -82,7 +97,7 @@ class _SignupScreenState extends State<SignupScreen> {
     return Scaffold(
       body: Column(
         children: [
-          /// Header
+          // Header
           TPrimaryHeaderContainer(
             logo: widget.logo,
             color1: widget.color1,
@@ -99,22 +114,19 @@ class _SignupScreenState extends State<SignupScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// Title
+                    // Title
                     Text(
                       TTexts.signupTitle,
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),
 
-                    /// Employee/Admin ID
+                    // Employee/Admin ID
                     TextFormField(
-                      controller: _employeeId,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Employee ID is required";
-                        }
-                        return null;
-                      },
+                      controller: _idController,
+                      validator: (value) => value!.isEmpty
+                          ? "${widget.admin ? "Admin" : "Employee"} ID is required"
+                          : null,
                       decoration: InputDecoration(
                         labelText:
                             widget.admin ? TTexts.adminId : TTexts.employeeId,
@@ -123,15 +135,11 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),
 
-                    /// Name
+                    // Name
                     TextFormField(
-                      controller: _name,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Name is required";
-                        }
-                        return null;
-                      },
+                      controller: _nameController,
+                      validator: (value) =>
+                          value!.isEmpty ? "Name is required" : null,
                       decoration: const InputDecoration(
                         labelText: TTexts.name,
                         prefixIcon: Icon(Iconsax.user),
@@ -139,16 +147,13 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),
 
-                    /// Email
+                    // Email
                     TextFormField(
-                      controller: _email,
+                      controller: _emailController,
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.isEmpty)
                           return "Email is required";
-                        }
-                        if (!value.contains("@")) {
-                          return "Enter a valid email";
-                        }
+                        if (!value.contains("@")) return "Enter a valid email";
                         return null;
                       },
                       decoration: const InputDecoration(
@@ -158,16 +163,14 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),
 
-                    /// Phone
+                    // Phone
                     TextFormField(
-                      controller: _phone,
+                      controller: _phoneController,
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.isEmpty)
                           return "Phone number is required";
-                        }
-                        if (value.length < 8) {
+                        if (value.length < 8)
                           return "Enter a valid phone number";
-                        }
                         return null;
                       },
                       decoration: const InputDecoration(
@@ -177,26 +180,24 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),
 
-                    /// Password
+                    // Password
                     TextFormField(
-                      controller: _password,
+                      controller: _passwordController,
                       obscureText: !isVisible,
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.isEmpty)
                           return "Password is required";
-                        }
-                        if (value.length < 6) {
+                        if (value.length < 6)
                           return "Password must be at least 6 characters";
-                        }
                         return null;
                       },
                       decoration: InputDecoration(
                         labelText: TTexts.password,
                         prefixIcon: const Icon(Iconsax.password_check),
                         suffixIcon: IconButton(
-                          icon: Icon(
-                            isVisible ? Icons.visibility : Icons.visibility_off,
-                          ),
+                          icon: Icon(isVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off),
                           onPressed: () =>
                               setState(() => isVisible = !isVisible),
                         ),
@@ -204,10 +205,9 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),
 
-                    ///  Account Button (with spinner)
+                    // Sign Up Button
                     SizedBox(
                       width: double.infinity,
-                      //height: 60, // keep consistent height
                       child: ElevatedButton(
                         onPressed: _loading ? null : _register,
                         child: _loading
@@ -225,7 +225,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
                     const SizedBox(height: TSizes.spaceBtwInputFields * 1.8),
 
-                    /// Divider
+                    // Divider
                     const TFormDivider(
                       dividerText1: TTexts.orSignUpWith,
                       dividerText2: TTexts.orGoBack,
@@ -233,7 +233,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields / 6),
 
-                    /// Navigation Links
+                    // Navigation Links
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

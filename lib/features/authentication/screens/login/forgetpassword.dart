@@ -15,61 +15,56 @@ class Forgetpassword extends StatefulWidget {
     required this.logo,
     required this.color1,
     required this.color2,
+    required this.admin,
     required this.isfin,
   });
 
   final String logo;
   final Color color1;
   final Color color2;
+  final bool admin;
   final bool isfin;
+
   @override
   State<Forgetpassword> createState() => _ForgetpasswordState();
 }
 
 class _ForgetpasswordState extends State<Forgetpassword> {
-  final TextEditingController _employeeIdController = TextEditingController();
+  final TextEditingController _idController = TextEditingController();
   bool _loading = false;
 
   Future<void> _sendResetCode() async {
-    if (_employeeIdController.text.trim().isEmpty) {
+    if (_idController.text.trim().isEmpty) {
       Get.snackbar(
-        "Error",
-        "Please enter Employee ID",
-      );
+          "Error", "Please enter ${widget.admin ? "Admin ID" : "Employee ID"}");
       return;
     }
 
     setState(() => _loading = true);
 
     try {
-      final response = await ForgetPasswordService.sendResetCode(
-        _employeeIdController.text.trim(),
-      );
+      final response = widget.admin
+          ? await ForgetPasswordService.sendAdminResetCode(
+              _idController.text.trim())
+          : await ForgetPasswordService.sendEmployeeResetCode(
+              _idController.text.trim());
 
       if (response.statusCode == 200) {
-        Get.snackbar(
-          "Success",
-          response.body,
-        );
+        Get.snackbar("Success", response.body);
 
         // Navigate to Update Password screen
         Get.to(() => Updatepassword(
               logo: widget.logo,
               color1: widget.color1,
               color2: widget.color2,
+              admin: widget.admin,
               isfin: widget.isfin,
             ));
       } else {
-        Get.snackbar(
-          "Failed",
-          response.body,
-        );
+        Get.snackbar("Failed", response.body);
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        e.toString(),
-      );
+      Get.snackbar("Error", e.toString());
     } finally {
       setState(() => _loading = false);
     }
@@ -81,36 +76,32 @@ class _ForgetpasswordState extends State<Forgetpassword> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // header section
             TPrimaryHeaderContainer(
               logo: widget.logo,
               color1: widget.color1,
               color2: widget.color2,
             ),
-
-            // form
             Padding(
               padding: const EdgeInsets.all(TSizes.spaceBtwSections),
               child: Form(
                 child: Column(
                   children: [
                     Text(
-                      TTexts.forgetPassword,
+                      widget.admin
+                          ? "Admin Password Reset"
+                          : TTexts.forgetPassword,
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: TSizes.spaceBtwInputFields),
-
-                    // Employee ID input
                     TextFormField(
-                      controller: _employeeIdController,
-                      decoration: const InputDecoration(
-                        labelText: TTexts.employeeId,
-                        prefixIcon: Icon(Iconsax.personalcard),
+                      controller: _idController,
+                      decoration: InputDecoration(
+                        labelText:
+                            widget.admin ? TTexts.adminId : TTexts.employeeId,
+                        prefixIcon: const Icon(Iconsax.personalcard),
                       ),
                     ),
-
                     const SizedBox(height: TSizes.spaceBtwInputFields),
-
                     SizedBox(
                       width: double.infinity,
                       height: 60,
@@ -128,14 +119,9 @@ class _ForgetpasswordState extends State<Forgetpassword> {
                             : const Text(TTexts.sendEmail),
                       ),
                     ),
-
                     const SizedBox(height: TSizes.spaceBtwInputFields * 1.8),
-
-                    // Divider
                     const TFormDivider(dividerText1: TTexts.orGoBack),
-
                     const SizedBox(height: TSizes.spaceBtwInputFields / 6),
-
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:t_store/employee_controller.dart';
 import 'package:t_store/features/app/screens/admin/home/pages/adminpagecontroller.dart';
 import 'package:t_store/features/app/screens/admin/home/pages/home_attendance.dart';
 import 'package:t_store/features/app/screens/employee/attendance_history/widgets/specialColumn.dart';
@@ -15,6 +16,7 @@ class AdminHome extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = THelperFunctions.isDarkMode(context);
     // final controller = Get.find<AdminPageController>();
+    final empController = Get.find<EmployeeController>();
 
     return Scaffold(
       body: Column(
@@ -29,6 +31,16 @@ class AdminHome extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Welcome 👋 ${empController.adminId.value}",
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      //  const Icon(Iconsax.notification, size: 28),
+                    ],
+                  ),
                   GestureDetector(
                     onTap: () => Get.to(() => const HomePageAttendance(
                           companyName: TTexts.companyName,
