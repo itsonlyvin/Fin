@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:t_store/features/app/screens/admin/home/pages/admin%20home.dart';
+import 'package:t_store/features/app/screens/admin/home/admin%20home.dart';
+import 'package:t_store/features/app/screens/admin/service/service.dart';
 import 'package:t_store/features/app/screens/employee/attendance_history/attendance_history.dart';
 import 'package:t_store/features/app/screens/employee/home/home.dart';
 import 'package:t_store/features/app/screens/employee/notifications/notifications.dart';
 import 'package:t_store/features/app/screens/employee/profile/profile.dart';
-import 'package:t_store/features/app/screens/admin/employee/employee.dart';
+import 'package:t_store/features/app/screens/admin/home/employee/employee_list.dart';
 import 'package:t_store/features/app/screens/admin/notifications/notifications_admin.dart';
 import 'package:t_store/utils/helpers/helper_functions.dart';
 
@@ -81,7 +82,7 @@ class NavigationController extends GetxController {
       // Admin screens
       screens = [
         const AdminHome(),
-        const EmployeeAdmin(),
+        const Service(),
         const NotificationsAdmin(),
         const ProfileScreen(),
       ];

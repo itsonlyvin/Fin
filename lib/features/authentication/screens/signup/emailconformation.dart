@@ -58,6 +58,7 @@ class _EmailConfirmationState extends State<EmailConfirmation> {
               color1: widget.color1,
               color2: widget.color2,
               isfin: widget.isfin,
+              admin: widget.admin,
             ));
       } else {
         Get.snackbar("Failed", response.body);

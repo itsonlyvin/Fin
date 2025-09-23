@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:t_store/employee_controller.dart';
-import 'package:t_store/features/app/screens/admin/home/pages/adminpagecontroller.dart';
-import 'package:t_store/features/app/screens/admin/home/pages/home_attendance.dart';
+import 'package:t_store/features/app/screens/admin/home/employee/employee_list.dart';
 import 'package:t_store/features/app/screens/employee/attendance_history/widgets/specialColumn.dart';
 import 'package:t_store/utils/constants/image_strings.dart';
 import 'package:t_store/utils/constants/sizes.dart';
-import 'package:t_store/utils/constants/text_strings.dart';
 import 'package:t_store/utils/helpers/helper_functions.dart';
 
 class AdminHome extends StatelessWidget {
@@ -42,8 +40,8 @@ class AdminHome extends StatelessWidget {
                     ],
                   ),
                   GestureDetector(
-                    onTap: () => Get.to(() => const HomePageAttendance(
-                          companyName: TTexts.companyName,
+                    onTap: () => Get.to(() => const EmployeeList(
+                          company: 'Fin',
                         )),
                     child: SpecialColumn(
                       dark: dark,
@@ -58,8 +56,8 @@ class AdminHome extends StatelessWidget {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => Get.to(() => const HomePageAttendance(
-                          companyName: TTexts.companyName1,
+                    onTap: () => Get.to(() => const EmployeeList(
+                          company: 'OpenArms',
                         )),
                     child: SpecialColumn(
                       dark: dark,
