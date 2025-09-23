@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:t_store/features/app/screens/admin/home/backservice/DailyAttendance.dart';
-import 'package:t_store/features/app/screens/admin/home/backservice/employeeservice%20.dart';
+import 'package:t_store/features/app/screens/admin/home/backservice/employeeservice.dart';
 import 'package:t_store/utils/constants/sizes.dart';
 
 class EmployeeInfo extends StatefulWidget {
@@ -63,52 +63,121 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
     }
   }
 
-  // Show bottom sheet when a day is clicked
+  // Show bottom sheet with admin override
   void showDayDetails(int day, String status) {
+    bool isPresent = status.toLowerCase() == "present";
+    bool halfDay = status.toLowerCase() == "half-day";
+    bool allowOvertime = false;
+    TextEditingController remarksController = TextEditingController();
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (_) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          height: 200,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Attendance Details",
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                top: 16,
+                left: 16,
+                right: 16,
               ),
-              const SizedBox(height: 16),
-              Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.calendar_today, color: Colors.blue),
-                  const SizedBox(width: 8),
                   Text(
-                    DateFormat.yMMMMd()
-                        .format(DateTime(selectedYear, selectedMonth, day)),
-                    style: const TextStyle(fontSize: 16),
+                    "Attendance Details",
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_today, color: Colors.blue),
+                      const SizedBox(width: 8),
+                      Text(
+                        DateFormat.yMMMMd()
+                            .format(DateTime(selectedYear, selectedMonth, day)),
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Icon(Icons.check_circle, color: Colors.green),
+                      const SizedBox(width: 8),
+                      Text("Current Status: $status"),
+                    ],
+                  ),
+                  const Divider(),
+                  CheckboxListTile(
+                    title: const Text("Mark Present"),
+                    value: isPresent,
+                    onChanged: (val) =>
+                        setModalState(() => isPresent = val ?? false),
+                  ),
+                  CheckboxListTile(
+                    title: const Text("Mark Half-Day"),
+                    value: halfDay,
+                    onChanged: (val) =>
+                        setModalState(() => halfDay = val ?? false),
+                  ),
+                  CheckboxListTile(
+                    title: const Text("Allow Overtime"),
+                    value: allowOvertime,
+                    onChanged: (val) =>
+                        setModalState(() => allowOvertime = val ?? false),
+                  ),
+                  TextField(
+                    controller: remarksController,
+                    decoration: const InputDecoration(
+                      labelText: "Remarks (optional)",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        await employeeService.adminOverride(
+                          employeeId: widget.employeeId,
+                          year: selectedYear,
+                          month: selectedMonth,
+                          day: day,
+                          allowOvertime: allowOvertime,
+                          isPresent: isPresent,
+                          halfDay: halfDay,
+                          remarks: remarksController.text,
+                        );
+
+                        Navigator.pop(context);
+                        fetchAttendance(); // refresh calendar
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text("Attendance updated successfully")),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Failed: $e")),
+                        );
+                      }
+                    },
+                    child: const Center(child: Text("Save")),
+                  ),
+                  const SizedBox(height: 16),
                 ],
               ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Icon(Icons.check_circle, color: Colors.green),
-                  const SizedBox(width: 8),
-                  Text(
-                    "Status: $status",
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

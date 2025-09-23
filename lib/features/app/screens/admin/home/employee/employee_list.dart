@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:t_store/features/app/screens/admin/home/backservice/EmployeeService%20.dart';
 import 'package:t_store/features/app/screens/admin/home/backservice/employee_model.dart';
+import 'package:t_store/features/app/screens/admin/home/backservice/employeeservice.dart';
 import 'package:t_store/features/app/screens/admin/home/employee/widgets/employee_info.dart';
 import 'package:t_store/utils/constants/sizes.dart';
 

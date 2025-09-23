@@ -35,4 +35,28 @@ class EmployeeService {
       throw Exception("Failed to load monthly attendance");
     }
   }
+
+  Future<void> adminOverride({
+    required String employeeId,
+    required int year,
+    required int month,
+    required int day,
+    required bool allowOvertime,
+    required bool isPresent,
+    required bool halfDay,
+    String? remarks,
+  }) async {
+    final url = Uri.parse(
+      "${AppConfig.baseUrl}/api/attendance/admin/override"
+      "?employeeId=$employeeId&year=$year&month=$month&day=$day"
+      "&allowOvertime=$allowOvertime&isPresent=$isPresent&halfDay=$halfDay"
+      "${remarks != null ? '&remarks=$remarks' : ''}",
+    );
+
+    final response = await http.post(url);
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to override attendance");
+    }
+  }
 }
