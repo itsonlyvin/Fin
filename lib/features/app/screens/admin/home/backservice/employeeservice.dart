@@ -74,6 +74,7 @@ class EmployeeService {
     }
   }
 
+  // Fetch a single employee by ID
   Future<Employee> fetchEmployeeById(String employeeId) async {
     final response =
         await http.get(Uri.parse("${AppConfig.baseUrl}/employee/$employeeId"));
@@ -82,6 +83,38 @@ class EmployeeService {
       return Employee.fromJson(jsonDecode(response.body));
     } else {
       throw Exception("Failed to load employee details");
+    }
+  }
+
+  // Update salary
+  Future<void> updateSalary(String employeeId, double salary) async {
+    final response = await http.put(
+      Uri.parse("${AppConfig.baseUrl}/employee/salary"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "employeeId": employeeId,
+        "salary": salary.toString(),
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to update salary: ${response.body}");
+    }
+  }
+
+  // Update bonus
+  Future<void> updateBonus(String employeeId, double bonus) async {
+    final response = await http.put(
+      Uri.parse("${AppConfig.baseUrl}/employee/bonus"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "employeeId": employeeId,
+        "bonus": bonus.toString(),
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to update bonus: ${response.body}");
     }
   }
 }

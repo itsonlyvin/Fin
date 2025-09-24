@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:t_store/features/app/screens/admin/home/backservice/daily_attendance.dart';
+import 'package:t_store/features/app/screens/admin/home/backservice/employee_model.dart';
 import 'package:t_store/features/app/screens/admin/home/backservice/employeeservice.dart';
 import 'package:t_store/utils/constants/sizes.dart';
 
@@ -60,58 +61,121 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
     }
   }
 
-  /// Show full employee details in bottom sheet
-  void showEmployeeDetails() async {
+  /// Fetch employee first, then show bottom sheet
+  void fetchEmployeeAndShowDetails() async {
     try {
       final employee =
           await employeeService.fetchEmployeeById(widget.employeeId);
-
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        builder: (_) {
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Employee Details",
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold)),
-                  const Divider(),
-                  Text("Name: ${employee.fullName}"),
-                  Text("ID: ${employee.employeeId}"),
-                  Text("Email: ${employee.companyEmail}"),
-                  Text("Phone no: ${employee.phoneNumber}"),
-                  Text("Salary: ${employee.salary}"),
-                  Text("Bonus: ${employee.bonus}"),
-                  // Text("Company: ${employee.company ?? "N/A"}"),
-                  const SizedBox(height: 20),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text("Close"),
-                    ),
-                  )
-                ],
-              ),
-            ),
-          );
-        },
-      );
+      showEmployeeDetails(employee);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to fetch employee details: $e")),
       );
     }
+  }
+
+  /// Show full employee details in bottom sheet
+  void showEmployeeDetails(Employee employee) {
+    final TextEditingController salaryController =
+        TextEditingController(text: employee.salary.toString());
+    final TextEditingController bonusController =
+        TextEditingController(text: employee.bonus.toString());
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Employee Details",
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const Divider(),
+                Text("Name: ${employee.fullName}"),
+                Text("ID: ${employee.employeeId}"),
+                Text("Email: ${employee.companyEmail}"),
+                Text("Phone: ${employee.phoneNumber}"),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: salaryController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: "Salary",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: bonusController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: "Bonus",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Close"),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          final double salary =
+                              double.tryParse(salaryController.text) ?? 0;
+                          final double bonus =
+                              double.tryParse(bonusController.text) ?? 0;
+
+                          await employeeService.updateSalary(
+                              employee.employeeId, salary);
+                          await employeeService.updateBonus(
+                              employee.employeeId, bonus);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("Salary & Bonus updated")),
+                          );
+
+                          Navigator.pop(context); // close bottom sheet
+                          fetchAttendance(); // refresh attendance if needed
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Failed: $e")),
+                          );
+                        }
+                      },
+                      child: const Text("Update"),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   /// Show daily attendance details
@@ -249,7 +313,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
           children: [
             // Employee Header
             InkWell(
-              onTap: showEmployeeDetails, // 👈 Bottom sheet on tap
+              onTap: fetchEmployeeAndShowDetails, // 👈 fixed
               child: Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(
