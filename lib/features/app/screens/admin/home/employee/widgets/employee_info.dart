@@ -60,6 +60,61 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
     }
   }
 
+  /// Show full employee details in bottom sheet
+  void showEmployeeDetails() async {
+    try {
+      final employee =
+          await employeeService.fetchEmployeeById(widget.employeeId);
+
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (_) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Employee Details",
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold)),
+                  const Divider(),
+                  Text("Name: ${employee.fullName}"),
+                  Text("ID: ${employee.employeeId}"),
+                  Text("Email: ${employee.companyEmail}"),
+                  Text("Phone no: ${employee.phoneNumber}"),
+                  Text("Salary: ${employee.salary}"),
+                  Text("Bonus: ${employee.bonus}"),
+                  // Text("Company: ${employee.company ?? "N/A"}"),
+                  const SizedBox(height: 20),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Close"),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to fetch employee details: $e")),
+      );
+    }
+  }
+
+  /// Show daily attendance details
   void showDayDetails(DailyAttendance day) {
     bool isPresent = day.status.toLowerCase() == "present";
     bool halfDay = day.status.toLowerCase() == "half-day";
@@ -193,19 +248,23 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Employee Header
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Colors.indigo,
-                  child: Icon(Icons.person, color: Colors.white),
+            InkWell(
+              onTap: showEmployeeDetails, // 👈 Bottom sheet on tap
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                title: Text(widget.employeeName,
-                    style: Theme.of(context).textTheme.titleMedium),
-                subtitle: Text("ID: ${widget.employeeId}"),
+                child: ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Colors.indigo,
+                    child: Icon(Icons.person, color: Colors.white),
+                  ),
+                  title: Text(widget.employeeName,
+                      style: Theme.of(context).textTheme.titleMedium),
+                  subtitle: Text("ID: ${widget.employeeId}"),
+                  trailing: const Icon(Icons.info, color: Colors.grey),
+                ),
               ),
             ),
             const SizedBox(height: TSizes.defaultSpace),

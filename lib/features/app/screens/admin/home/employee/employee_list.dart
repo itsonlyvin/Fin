@@ -44,14 +44,31 @@ class EmployeeList extends StatelessWidget {
                     return ListView.builder(
                       itemCount: employees.length,
                       itemBuilder: (context, index) {
-                        return ListTile(
-                          leading: const Icon(Icons.person),
-                          title: Text(employees[index].name),
-                          subtitle: Text("Employee ID: ${employees[index].id}"),
-                          onTap: () => Get.to(() => EmployeeInfo(
-                                employeeId: employees[index].id,
-                                employeeName: employees[index].name,
-                              )),
+                        final employee = employees[index];
+                        return Card(
+                          elevation: 4,
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          child: ListTile(
+                            leading: const CircleAvatar(
+                              backgroundColor: Colors.indigo,
+                              child: Icon(Icons.person, color: Colors.white),
+                            ),
+                            title: Text(employee.fullName),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("ID: ${employee.employeeId}"),
+                              ],
+                            ),
+                            trailing:
+                                const Icon(Icons.arrow_forward_ios, size: 16),
+                            onTap: () => Get.to(() => EmployeeInfo(
+                                  employeeId: employee.employeeId,
+                                  employeeName: employee.fullName,
+                                )),
+                          ),
                         );
                       },
                     );
