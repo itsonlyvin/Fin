@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:t_store/features/app/screens/admin/home/backservice/AttendanceReport.dart';
 import 'package:t_store/features/app/screens/admin/home/backservice/daily_attendance.dart';
 import 'package:t_store/features/app/screens/admin/home/backservice/employee_model.dart';
 import 'package:t_store/features/app/screens/admin/home/backservice/employeeservice.dart';
+import 'package:t_store/utils/constants/colors.dart';
 import 'package:t_store/utils/constants/sizes.dart';
 
 class EmployeeInfo extends StatefulWidget {
@@ -49,15 +51,15 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
   Color getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case "present":
-        return Colors.green;
+        return TColors.present;
       case "absent":
-        return Colors.red;
+        return TColors.absent;
       case "half-day":
-        return Colors.orange;
+        return TColors.halfDay;
       case "holiday":
-        return Colors.blue;
+        return TColors.holiday;
       default:
-        return Colors.grey;
+        return TColors.nodata;
     }
   }
 
@@ -72,6 +74,81 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
         SnackBar(content: Text("Failed to fetch employee details: $e")),
       );
     }
+  }
+
+//// salary emp details
+  void fetchReportAndShow() async {
+    try {
+      final report = await employeeService.fetchMonthlyReport(
+          widget.employeeId, selectedYear, selectedMonth);
+      showReportBottomSheet(report);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to fetch report: $e")),
+      );
+    }
+  }
+
+  void showReportBottomSheet(AttendanceReport report) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Monthly Report",
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold)),
+                const Divider(),
+                Text("Employee: ${report.employeeName}"),
+                Text("Month: ${report.month}/${report.year}"),
+                const SizedBox(height: 8),
+                Text("Total Days: ${report.totalDays}"),
+                Text("Days Left: ${report.daysLeft}"),
+                Text("Present: ${report.presentDays}"),
+                Text("Half Days: ${report.halfDays}"),
+                Text("Absent: ${report.absentDays}"),
+                //Text("Late: ${report.lateDays}"),
+                Text("Paid Leave: ${report.paidLeave - report.holidayCount}"),
+                Text("Holidays: ${report.holidayCount}"),
+                const SizedBox(height: 8),
+                Text(
+                    "Total Hours: ${report.totalHoursWorked.toStringAsFixed(2)}"),
+                Text(
+                    "Overtime Hours: ${report.totalOvertimeHours.toStringAsFixed(2)}"),
+                Text("Overtime Pay: ₹${report.overtimePay.toStringAsFixed(2)}"),
+                Text(
+                    "Salary Earned: ₹${report.salaryEarned.toStringAsFixed(2)}"),
+                Text("Bonus: ₹${report.bonusEarned.toStringAsFixed(2)}"),
+                Text(
+                  "Total Salary: ₹${(report.bonusEarned + report.salaryEarned + report.overtimePay).toStringAsFixed(2)}",
+                ),
+
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Close"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   /// Show full employee details in bottom sheet
@@ -216,7 +293,8 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        const Icon(Icons.calendar_today, color: Colors.blue),
+                        const Icon(Icons.calendar_today,
+                            color: TColors.primary),
                         const SizedBox(width: 8),
                         Text(DateFormat.yMMMMd().format(day.date),
                             style: const TextStyle(fontSize: 16)),
@@ -313,7 +391,11 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
           children: [
             // Employee Header
             InkWell(
-              onTap: fetchEmployeeAndShowDetails, // 👈 fixed
+              onTap: fetchEmployeeAndShowDetails,
+              splashColor: TColors.primary.withOpacity(0.3), // ripple color
+              highlightColor:
+                  TColors.primary.withOpacity(0.1), // background when pressed
+              borderRadius: BorderRadius.circular(12), // ripple color
               child: Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(
@@ -321,7 +403,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                 ),
                 child: ListTile(
                   leading: const CircleAvatar(
-                    backgroundColor: Colors.indigo,
+                    backgroundColor: TColors.primary,
                     child: Icon(Icons.person, color: Colors.white),
                   ),
                   title: Text(widget.employeeName,
@@ -332,7 +414,29 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
               ),
             ),
             const SizedBox(height: TSizes.defaultSpace),
-
+            // Monthly Report Card (same style as Employee Header)
+            InkWell(
+              splashColor: TColors.primary.withOpacity(0.3), // ripple color
+              highlightColor:
+                  TColors.primary.withOpacity(0.1), // background when pressed
+              borderRadius: BorderRadius.circular(12),
+              onTap: fetchReportAndShow,
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: TColors.primary,
+                    child: Icon(Icons.assignment, color: Colors.white),
+                  ),
+                  title: Text("View Monthly Report"),
+                  trailing: Icon(Icons.arrow_forward_ios, color: Colors.grey),
+                ),
+              ),
+            ),
+            const SizedBox(height: TSizes.defaultSpace),
             // Month & Year selection
             Row(
               children: [

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:t_store/appconfig.dart';
+import 'package:t_store/features/app/screens/admin/home/backservice/AttendanceReport.dart';
 import 'daily_attendance.dart';
 import 'employee_model.dart';
 
@@ -115,6 +116,19 @@ class EmployeeService {
 
     if (response.statusCode != 200) {
       throw Exception("Failed to update bonus: ${response.body}");
+    }
+  }
+
+  Future<AttendanceReport> fetchMonthlyReport(
+      String employeeId, int year, int month) async {
+    final url = Uri.parse(
+        "${AppConfig.baseUrl}/api/attendance/report/$employeeId?year=$year&month=$month");
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      return AttendanceReport.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception("Failed to fetch monthly report");
     }
   }
 }

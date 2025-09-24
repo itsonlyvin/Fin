@@ -41,20 +41,20 @@ class NavigationMenu extends StatelessWidget {
               ? Colors.white.withAlpha((255 * 0.1).toInt())
               : Colors.black.withAlpha((0.1 * 255).toInt()),
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: const [
-            NavigationDestination(
+          destinations: [
+            const NavigationDestination(
               icon: Icon(Iconsax.home),
               label: 'Home',
             ),
             NavigationDestination(
-              icon: Icon(Iconsax.document),
-              label: 'Attendance',
+              icon: const Icon(Iconsax.document),
+              label: admin ? 'Service' : 'Attendance',
             ),
-            NavigationDestination(
+            const NavigationDestination(
               icon: Icon(Iconsax.notification),
               label: 'Notifications',
             ),
-            NavigationDestination(
+            const NavigationDestination(
               icon: Icon(Iconsax.user),
               label: 'Profile',
             ),
