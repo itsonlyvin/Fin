@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:t_store/features/app/screens/admin/home/backservice/DailyAttendance.dart';
+import 'package:t_store/features/app/screens/admin/home/backservice/daily_attendance.dart';
 import 'package:t_store/features/app/screens/admin/home/backservice/employeeservice.dart';
 import 'package:t_store/utils/constants/sizes.dart';
 
@@ -32,11 +32,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
     final now = DateTime.now();
     selectedYear = now.year;
     selectedMonth = now.month;
-    attendanceFuture = employeeService.fetchMonthlyAttendance(
-      widget.employeeId,
-      selectedYear,
-      selectedMonth,
-    );
+    fetchAttendance();
   }
 
   void fetchAttendance() {
@@ -49,7 +45,6 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
     });
   }
 
-  // Helper to get color by status
   Color getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case "present":
@@ -58,17 +53,19 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
         return Colors.red;
       case "half-day":
         return Colors.orange;
+      case "holiday":
+        return Colors.blue;
       default:
         return Colors.grey;
     }
   }
 
-  // Show bottom sheet with admin override
-  void showDayDetails(int day, String status) {
-    bool isPresent = status.toLowerCase() == "present";
-    bool halfDay = status.toLowerCase() == "half-day";
-    bool allowOvertime = false;
-    TextEditingController remarksController = TextEditingController();
+  void showDayDetails(DailyAttendance day) {
+    bool isPresent = day.status.toLowerCase() == "present";
+    bool halfDay = day.status.toLowerCase() == "half-day";
+    bool allowOvertime = day.overtimeEnabled ?? false;
+    TextEditingController remarksController =
+        TextEditingController(text: day.adminRemarks ?? "");
 
     showModalBottomSheet(
       context: context,
@@ -81,100 +78,96 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
           builder: (context, setModalState) {
             return Padding(
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-                top: 16,
-                left: 16,
-                right: 16,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Attendance Details",
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      const Icon(Icons.calendar_today, color: Colors.blue),
-                      const SizedBox(width: 8),
-                      Text(
-                        DateFormat.yMMMMd()
-                            .format(DateTime(selectedYear, selectedMonth, day)),
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Icon(Icons.check_circle, color: Colors.green),
-                      const SizedBox(width: 8),
-                      Text("Current Status: $status"),
-                    ],
-                  ),
-                  const Divider(),
-                  CheckboxListTile(
-                    title: const Text("Mark Present"),
-                    value: isPresent,
-                    onChanged: (val) =>
-                        setModalState(() => isPresent = val ?? false),
-                  ),
-                  CheckboxListTile(
-                    title: const Text("Mark Half-Day"),
-                    value: halfDay,
-                    onChanged: (val) =>
-                        setModalState(() => halfDay = val ?? false),
-                  ),
-                  CheckboxListTile(
-                    title: const Text("Allow Overtime"),
-                    value: allowOvertime,
-                    onChanged: (val) =>
-                        setModalState(() => allowOvertime = val ?? false),
-                  ),
-                  TextField(
-                    controller: remarksController,
-                    decoration: const InputDecoration(
-                      labelText: "Remarks (optional)",
-                      border: OutlineInputBorder(),
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                  top: 16,
+                  left: 16,
+                  right: 16),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Attendance Details",
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        await employeeService.adminOverride(
-                          employeeId: widget.employeeId,
-                          year: selectedYear,
-                          month: selectedMonth,
-                          day: day,
-                          allowOvertime: allowOvertime,
-                          isPresent: isPresent,
-                          halfDay: halfDay,
-                          remarks: remarksController.text,
-                        );
-
-                        Navigator.pop(context);
-                        fetchAttendance(); // refresh calendar
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text("Attendance updated successfully")),
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Failed: $e")),
-                        );
-                      }
-                    },
-                    child: const Center(child: Text("Save")),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_today, color: Colors.blue),
+                        const SizedBox(width: 8),
+                        Text(DateFormat.yMMMMd().format(day.date),
+                            style: const TextStyle(fontSize: 16)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text("Current Status: ${day.status}"),
+                    if (day.clockIn != null)
+                      Text("Clock In: ${DateFormat.jm().format(day.clockIn!)}"),
+                    if (day.clockOut != null)
+                      Text(
+                          "Clock Out: ${DateFormat.jm().format(day.clockOut!)}"),
+                    if (day.totalHours != null)
+                      Text("Total Hours: ${day.totalHours}"),
+                    const Divider(),
+                    CheckboxListTile(
+                      title: const Text("Mark Present"),
+                      value: isPresent,
+                      onChanged: (val) =>
+                          setModalState(() => isPresent = val ?? false),
+                    ),
+                    CheckboxListTile(
+                      title: const Text("Mark Half-Day"),
+                      value: halfDay,
+                      onChanged: (val) =>
+                          setModalState(() => halfDay = val ?? false),
+                    ),
+                    CheckboxListTile(
+                      title: const Text("Allow Overtime"),
+                      value: allowOvertime,
+                      onChanged: (val) =>
+                          setModalState(() => allowOvertime = val ?? false),
+                    ),
+                    TextField(
+                      controller: remarksController,
+                      decoration: const InputDecoration(
+                        labelText: "Remarks (optional)",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          await employeeService.adminOverride(
+                            employeeId: widget.employeeId,
+                            year: selectedYear,
+                            month: selectedMonth,
+                            day: day.day,
+                            allowOvertime: allowOvertime,
+                            isPresent: isPresent,
+                            halfDay: halfDay,
+                            remarks: remarksController.text,
+                          );
+                          Navigator.pop(context);
+                          fetchAttendance();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text("Attendance updated successfully")));
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Failed: $e")));
+                        }
+                      },
+                      child: const Center(child: Text("Save")),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             );
           },
@@ -231,10 +224,9 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                       ),
                       items: months
                           .map((m) => DropdownMenuItem(
-                                value: m,
-                                child: Text(DateFormat.MMMM()
-                                    .format(DateTime(DateTime.now().year, m))),
-                              ))
+                              value: m,
+                              child: Text(DateFormat.MMMM()
+                                  .format(DateTime(DateTime.now().year, m)))))
                           .toList(),
                       onChanged: (val) {
                         if (val != null) {
@@ -256,10 +248,8 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                         border: OutlineInputBorder(),
                       ),
                       items: years
-                          .map((y) => DropdownMenuItem(
-                                value: y,
-                                child: Text(y.toString()),
-                              ))
+                          .map((y) =>
+                              DropdownMenuItem(value: y, child: Text("$y")))
                           .toList(),
                       onChanged: (val) {
                         if (val != null) {
@@ -292,16 +282,12 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                     final firstDay =
                         DateTime(selectedYear, selectedMonth, 1).weekday;
 
-                    // Attendance map
-                    final Map<int, String> statusByDay = {};
-                    for (var day in attendance) {
-                      statusByDay[day.day] = day.status;
-                    }
+                    final Map<int, DailyAttendance> dayMap = {
+                      for (var d in attendance) d.day: d
+                    };
 
-                    // Build calendar cells
                     final List<Widget> dayWidgets = [];
 
-                    // Weekday headers
                     const weekdays = [
                       "Mon",
                       "Tue",
@@ -311,54 +297,48 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                       "Sat",
                       "Sun"
                     ];
-                    dayWidgets.addAll(
-                      weekdays.map(
-                        (w) => Center(
+                    dayWidgets.addAll(weekdays.map((w) => Center(
                           child: Text(
                             w,
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
-                        ),
-                      ),
-                    );
+                        )));
 
-                    // Empty slots before first day
                     for (int i = 1; i < firstDay; i++) {
                       dayWidgets.add(const SizedBox());
                     }
 
-                    // Actual days
                     for (int day = 1; day <= daysInMonth; day++) {
-                      final status = statusByDay[day] ?? "No Data";
+                      final daily = dayMap[day];
+                      final status = daily?.status ?? "No Data";
                       final color = getStatusColor(status);
 
-                      dayWidgets.add(
-                        GestureDetector(
-                          onTap: () => showDayDetails(day, status),
-                          child: Container(
-                            margin: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: color.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: color, width: 1.5),
-                            ),
-                            child: Center(
-                              child: Text(
-                                day.toString(),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                  color: Colors.black,
-                                ),
+                      dayWidgets.add(GestureDetector(
+                        onTap:
+                            daily != null ? () => showDayDetails(daily) : null,
+                        child: Container(
+                          margin: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: color, width: 1.5),
+                          ),
+                          child: Center(
+                            child: Text(
+                              day.toString(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Colors.black,
                               ),
                             ),
                           ),
                         ),
-                      );
+                      ));
                     }
 
                     return GridView.count(
-                      crossAxisCount: 7, // 7 days a week
+                      crossAxisCount: 7,
                       children: dayWidgets,
                     );
                   }

@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:t_store/appconfig.dart';
-import 'package:t_store/features/app/screens/admin/home/backservice/DailyAttendance.dart';
+import 'daily_attendance.dart';
 import 'employee_model.dart';
 
 class EmployeeService {
+  // Fetch employees based on company
   Future<List<Employee>> fetchEmployees(String company) async {
-    // Map the company name to the right endpoint
     String endpoint = company == "Fin"
         ? "${AppConfig.baseUrl}/employee/all_employees_fin"
         : "${AppConfig.baseUrl}/employee/all_employees_openarms";
@@ -21,6 +21,7 @@ class EmployeeService {
     }
   }
 
+  // Fetch monthly attendance
   Future<List<DailyAttendance>> fetchMonthlyAttendance(
       String employeeId, int year, int month) async {
     final url = Uri.parse(
@@ -29,13 +30,26 @@ class EmployeeService {
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(response.body);
+      final decoded = jsonDecode(response.body);
+
+      List<dynamic> body;
+
+      // Handle {"days": [...]} or plain list []
+      if (decoded is Map && decoded.containsKey('days')) {
+        body = decoded['days'];
+      } else if (decoded is List) {
+        body = decoded;
+      } else {
+        throw Exception("Unexpected response format");
+      }
+
       return body.map((e) => DailyAttendance.fromJson(e)).toList();
     } else {
       throw Exception("Failed to load monthly attendance");
     }
   }
 
+  // Admin override
   Future<void> adminOverride({
     required String employeeId,
     required int year,
