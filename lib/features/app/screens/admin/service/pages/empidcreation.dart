@@ -255,7 +255,7 @@ class _EmpIdPageState extends State<EmpIdPage> {
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete,
-                                      color: Colors.red),
+                                      color: Color.fromARGB(255, 209, 56, 46)),
                                   onPressed: () => confirmAndDeleteEmployeeId(
                                       emp['employeeId']),
                                 ),
