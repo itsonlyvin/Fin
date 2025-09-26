@@ -9,6 +9,7 @@ import 'package:t_store/features/app/screens/employee/notifications/notification
 import 'package:t_store/features/app/screens/employee/profile/profile.dart';
 import 'package:t_store/features/app/screens/admin/home/employee/employee_list.dart';
 import 'package:t_store/features/app/screens/admin/notifications/notifications_admin.dart';
+import 'package:t_store/features/qrcode/qrcode.dart';
 import 'package:t_store/utils/helpers/helper_functions.dart';
 
 class NavigationMenu extends StatelessWidget {
@@ -83,7 +84,7 @@ class NavigationController extends GetxController {
       screens = [
         const AdminHome(),
         const Service(),
-        const NotificationsAdmin(),
+        const ActiveQrCodePage(),
         const ProfileScreen(),
       ];
     } else {
