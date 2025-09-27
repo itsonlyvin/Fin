@@ -30,7 +30,9 @@ dependencies:
   # State Management
   get: ^4.7.2
   get_storage: ^2.1.1
-
+  geolocator: ^14.0.2
+  mobile_scanner: ^3.1.0
+  permission_handler: ^11.3.0
   # Product Specific
   readmore: ^3.0.0
   carousel_slider: ^5.0.0
