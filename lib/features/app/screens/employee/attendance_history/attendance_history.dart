@@ -1,301 +1,469 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iconsax/iconsax.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
-import 'package:t_store/features/app/screens/employee/attendance_history/widgets/askleave.dart';
-import 'package:t_store/features/app/screens/employee/attendance_history/widgets/news.dart';
-import 'package:t_store/features/app/screens/employee/attendance_history/widgets/radiobutton.dart';
-import 'package:t_store/features/app/screens/employee/attendance_history/widgets/specialColumn.dart';
+import 'package:intl/intl.dart';
+import 'package:t_store/employee_controller.dart';
+import 'package:t_store/features/app/screens/admin/home/backservice/AttendanceReport.dart';
+import 'package:t_store/features/app/screens/admin/home/backservice/daily_attendance.dart';
+import 'package:t_store/features/app/screens/admin/home/backservice/employee_model.dart';
+import 'package:t_store/features/app/screens/admin/home/backservice/employeeservice.dart';
 import 'package:t_store/utils/constants/colors.dart';
 import 'package:t_store/utils/constants/sizes.dart';
-import 'package:t_store/utils/helpers/helper_functions.dart';
 
-class AttendanceHistory extends StatelessWidget {
-  const AttendanceHistory({super.key});
+class EmployeeInfo extends StatefulWidget {
+  final String? employeeId;
+  final String? employeeName;
+
+  const EmployeeInfo({super.key, this.employeeId, this.employeeName});
 
   @override
-  Widget build(BuildContext context) {
-    final dark = THelperFunctions.isDarkMode(context);
+  State<EmployeeInfo> createState() => _EmployeeInfoState();
+}
 
-    List<int> days = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-    return Scaffold(
-      body: Column(
-        children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.only(
-              top: TSizes.appBarHeight,
-              bottom: TSizes.sm,
-              left: TSizes.defaultSpace,
-              right: TSizes.defaultSpace,
-            ),
-            child: Row(
+class _EmployeeInfoState extends State<EmployeeInfo> {
+  final EmployeeService employeeService = EmployeeService();
+  late final String employeeId;
+  late int selectedYear;
+  late int selectedMonth;
+  late Future<List<DailyAttendance>> attendanceFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    selectedYear = now.year;
+    selectedMonth = now.month;
+
+    // Use employeeId from widget or from controller
+    final empController = Get.find<EmployeeController>();
+    employeeId = widget.employeeId ?? empController.empId.value;
+
+    fetchAttendance();
+  }
+
+  void fetchAttendance() {
+    setState(() {
+      attendanceFuture = employeeService.fetchMonthlyAttendance(
+        employeeId,
+        selectedYear,
+        selectedMonth,
+      );
+    });
+  }
+
+  Color getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case "present":
+        return TColors.present;
+      case "absent":
+        return TColors.absent;
+      case "half-day":
+        return TColors.halfDay;
+      case "holiday":
+        return TColors.holiday;
+      default:
+        return TColors.nodata;
+    }
+  }
+
+  void fetchEmployeeAndShowDetails() async {
+    try {
+      final employee = await employeeService.fetchEmployeeById(employeeId);
+      showEmployeeDetails(employee);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to fetch employee details: $e")),
+      );
+    }
+  }
+
+  void fetchReportAndShow() async {
+    try {
+      final report = await employeeService.fetchMonthlyReport(
+          employeeId, selectedYear, selectedMonth);
+      showReportBottomSheet(report);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to fetch report: $e")),
+      );
+    }
+  }
+
+  void showReportBottomSheet(AttendanceReport report) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "X",
-                  style: Theme.of(context).textTheme.headlineSmall,
+                  "Monthly Report",
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const Divider(),
+                Text("Employee: ${report.employeeName}"),
+                Text("Month: ${report.month}/${report.year}"),
+                const SizedBox(height: 8),
+                Text("Total Days: ${report.totalDays}"),
+                Text("Days Left: ${report.daysLeft}"),
+                Text("Present: ${report.presentDays}"),
+                Text("Half Days: ${report.halfDays}"),
+                Text("Absent: ${report.absentDays}"),
+                Text("Paid Leave: ${report.paidLeave - report.holidayCount}"),
+                Text("Holidays: ${report.holidayCount}"),
+                const SizedBox(height: 8),
+                Text(
+                    "Total Hours: ${report.totalHoursWorked.toStringAsFixed(2)}"),
+                Text(
+                    "Overtime Hours: ${report.totalOvertimeHours.toStringAsFixed(2)}"),
+                Text("Overtime Pay: ₹${report.overtimePay.toStringAsFixed(2)}"),
+                Text(
+                    "Salary Earned: ₹${report.salaryEarned.toStringAsFixed(2)}"),
+                Text("Bonus: ₹${report.bonusEarned.toStringAsFixed(2)}"),
+                Text(
+                  "Total Salary: ₹${(report.bonusEarned + report.salaryEarned + report.overtimePay).toStringAsFixed(2)}",
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Close"),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
+        );
+      },
+    );
+  }
 
-          // Body
-          Expanded(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  bottom: TSizes.sm,
-                  left: TSizes.defaultSpace,
-                  right: TSizes.defaultSpace,
+  void showEmployeeDetails(Employee employee) {
+    final TextEditingController salaryController =
+        TextEditingController(text: employee.salary.toString());
+    final TextEditingController bonusController =
+        TextEditingController(text: employee.bonus.toString());
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Employee Details",
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                const Divider(),
+                Text("Name: ${employee.fullName}"),
+                Text("ID: ${employee.employeeId}"),
+                Text("Email: ${employee.companyEmail}"),
+                Text("Phone: ${employee.phoneNumber}"),
+                Text("Salary: ${employee.salary}"),
+                Text("bonus: ${employee.bonus}"),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // First
-                    SpecialColumn(
-                      dark: dark,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          // Date
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Date number
-                              Text(
-                                "27",
-                                style:
-                                    Theme.of(context).textTheme.displayMedium,
-                              ),
-                              const SizedBox(width: TSizes.defaultSpace),
-
-                              // Weekday + Month
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Wednesday",
-                                    style:
-                                        Theme.of(context).textTheme.titleMedium,
-                                  ),
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    "June 2025",
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-
-                          // Text
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                top: TSizes.md, bottom: TSizes.sm),
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: Text(
-                                "This month status",
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ),
-                          ),
-
-                          // progress
-                          SizedBox(
-                            height: 55,
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: days.length,
-                              scrollDirection: Axis.horizontal,
-                              itemBuilder: (context, index) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 10),
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        days[index].toString(),
-                                      ),
-                                      const SizedBox(height: TSizes.sm),
-                                      const AttendanceRadio(),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Close"),
                     ),
+                    const SizedBox(width: 12),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
-                    // Second
-                    SpecialColumn(
-                      dark: dark,
-                      child: IntrinsicHeight(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            PrecentIndicator(
-                              dark: dark,
-                              precentage: 0.7,
-                              precentageString: '70',
-                              data: 'Atteandace',
-                            ),
-                            DividerVertical(),
-                            PrecentIndicator(
-                              dark: dark,
-                              precentage: 0.7,
-                              precentageString: '70',
-                              data: 'Leave Taken',
-                            ),
-                            DividerVertical(),
-                            PrecentIndicator(
-                              dark: dark,
-                              precentage: 0.7,
-                              precentageString: '70',
-                              data: 'Ongoing Day',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+  void showDayDetails(DailyAttendance day) {
+    bool isPresent = day.status.toLowerCase() == "present";
+    bool halfDay = day.status.toLowerCase() == "half-day";
+    bool allowOvertime = day.overtimeEnabled ?? false;
+    TextEditingController remarksController =
+        TextEditingController(text: day.adminRemarks ?? "");
 
-                    // Third
-                    SpecialColumn(
-                      dark: dark,
-                      child: IntrinsicHeight(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            LeaveColumn(
-                              onTap: () => Get.to(() => const AskLeave()),
-                              icon: Iconsax.calendar,
-                              text: 'Ask Leave',
-                            ),
-                            const DividerVertical(),
-                            // LeaveColumn(
-                            //   icon: Iconsax.ranking,
-                            //   text: 'Leader\nBoard',
-                            // ),
-                            // DividerVertical(),
-                            LeaveColumn(
-                              onTap: () => Get.to(() => const News()),
-                              icon: Iconsax.document,
-                              text: 'News',
-                            ),
-                          ],
-                        ),
-                      ),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                top: 16,
+                left: 16,
+                right: 16,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Attendance Details",
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_today,
+                            color: TColors.primary),
+                        const SizedBox(width: 8),
+                        Text(DateFormat.yMMMMd().format(day.date),
+                            style: const TextStyle(fontSize: 16)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text("Current Status: ${day.status}"),
+                    if (day.clockIn != null)
+                      Text("Clock In: ${DateFormat.jm().format(day.clockIn!)}"),
+                    if (day.clockOut != null)
+                      Text(
+                          "Clock Out: ${DateFormat.jm().format(day.clockOut!)}"),
+                    if (day.totalHours != null)
+                      Text("Total Hours: ${day.totalHours}"),
+                    Text("Admin Remarks: ${day.adminRemarks}"),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Center(child: Text("Close")),
+                    ),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
-            ),
-          )
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
   }
-}
-
-////
-class DividerVertical extends StatelessWidget {
-  const DividerVertical({
-    super.key,
-  });
 
   @override
   Widget build(BuildContext context) {
-    final dark = THelperFunctions.isDarkMode(context);
+    final years = List.generate(5, (i) => DateTime.now().year - i);
+    final months = List.generate(12, (i) => i + 1);
+    final empController = Get.find<EmployeeController>();
 
-    return VerticalDivider(
-      color:
-          // Dark card color
-          dark
-              ? Colors.grey.withValues(alpha: 0.3)
-              : Colors.black.withValues(alpha: 0.5),
-      thickness: 0.5,
-      width: 20, // space it occupies horizontally
-      indent: 0, // top spacing
-      endIndent: 0, // bottom spacing
-    );
-  }
-}
-
-////
-class LeaveColumn extends StatelessWidget {
-  const LeaveColumn({
-    super.key,
-    required this.icon,
-    required this.text,
-    this.onTap,
-  });
-
-  final IconData icon;
-  final String text;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final double width = MediaQuery.of(context).size.width;
-    final dark = THelperFunctions.isDarkMode(context);
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        color: dark
-            ? const Color(0xFF1E1E1E) // Dark card color
-            : Colors.white,
-        width: width / 4,
-        child: Column(
-          children: [
-            Icon(icon),
-            Padding(
-              padding: const EdgeInsets.only(top: TSizes.sm),
-              child: Text(
-                text,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            )
-          ],
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.only(
+          top: TSizes.appBarHeight,
+          left: TSizes.defaultSpace,
+          right: TSizes.defaultSpace,
+          bottom: TSizes.defaultSpace,
         ),
-      ),
-    );
-  }
-}
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InkWell(
+              onTap: fetchEmployeeAndShowDetails,
+              splashColor: TColors.primary.withOpacity(0.3),
+              highlightColor: TColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                child: const ListTile(
+                  title: Text("Details"),
+                  leading: CircleAvatar(
+                    backgroundColor: TColors.primary,
+                    child: Icon(Icons.person, color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: TSizes.defaultSpace),
+            InkWell(
+              splashColor: TColors.primary.withOpacity(0.3),
+              highlightColor: TColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              onTap: fetchReportAndShow,
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                child: const ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: TColors.primary,
+                    child: Icon(Icons.assignment, color: Colors.white),
+                  ),
+                  title: Text("View Monthly Report"),
+                  trailing: Icon(Icons.arrow_forward_ios, color: Colors.grey),
+                ),
+              ),
+            ),
+            const SizedBox(height: TSizes.defaultSpace),
+            Row(
+              children: [
+                Expanded(
+                  child: Card(
+                    elevation: 4,
+                    child: DropdownButtonFormField<int>(
+                      value: selectedMonth,
+                      decoration: const InputDecoration(
+                        labelText: "Month",
+                        border: OutlineInputBorder(),
+                      ),
+                      items: months
+                          .map((m) => DropdownMenuItem(
+                                value: m,
+                                child: Text(DateFormat.MMMM()
+                                    .format(DateTime(DateTime.now().year, m))),
+                              ))
+                          .toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          selectedMonth = val;
+                          fetchAttendance();
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Card(
+                    elevation: 4,
+                    child: DropdownButtonFormField<int>(
+                      value: selectedYear,
+                      decoration: const InputDecoration(
+                        labelText: "Year",
+                        border: OutlineInputBorder(),
+                      ),
+                      items: years
+                          .map((y) =>
+                              DropdownMenuItem(value: y, child: Text("$y")))
+                          .toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          selectedYear = val;
+                          fetchAttendance();
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Expanded(
+              child: FutureBuilder<List<DailyAttendance>>(
+                future: attendanceFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text("Error: ${snapshot.error}"));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(
+                        child: Text("No attendance data found"));
+                  } else {
+                    final attendance = snapshot.data!;
+                    final daysInMonth =
+                        DateUtils.getDaysInMonth(selectedYear, selectedMonth);
+                    final firstDay =
+                        DateTime(selectedYear, selectedMonth, 1).weekday;
 
-//////
-class PrecentIndicator extends StatelessWidget {
-  const PrecentIndicator({
-    super.key,
-    required this.dark,
-    required this.precentage,
-    required this.precentageString,
-    required this.data,
-  });
+                    final Map<int, DailyAttendance> dayMap = {
+                      for (var d in attendance) d.day: d
+                    };
+                    final List<Widget> dayWidgets = [];
 
-  final bool dark;
-  final String data;
-  final double precentage;
-  final String precentageString;
+                    const weekdays = [
+                      "Mon",
+                      "Tue",
+                      "Wed",
+                      "Thu",
+                      "Fri",
+                      "Sat",
+                      "Sun"
+                    ];
+                    dayWidgets.addAll(weekdays.map((w) => Center(
+                        child: Text(w,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold)))));
 
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      child: CircularPercentIndicator(
-        percent: precentage,
-        lineWidth: 5,
-        backgroundColor: dark ? TColors.darkGrey : TColors.lightGrey,
-        radius: 35,
-        center: Text(precentageString),
-        progressColor: TColors.primary,
-        footer: Padding(
-          padding: const EdgeInsets.only(top: TSizes.sm),
-          child: Text(
-            data,
-            style: const TextStyle(fontSize: 10),
-          ),
+                    for (int i = 1; i < firstDay; i++) {
+                      dayWidgets.add(const SizedBox());
+                    }
+
+                    for (int day = 1; day <= daysInMonth; day++) {
+                      final daily = dayMap[day];
+                      final status = daily?.status ?? "No Data";
+                      final color = getStatusColor(status);
+
+                      dayWidgets.add(GestureDetector(
+                        onTap:
+                            daily != null ? () => showDayDetails(daily) : null,
+                        child: Container(
+                          margin: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: color, width: 1.5),
+                          ),
+                          child: Center(
+                            child: Text(
+                              day.toString(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ));
+                    }
+
+                    return GridView.count(
+                        crossAxisCount: 7, children: dayWidgets);
+                  }
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

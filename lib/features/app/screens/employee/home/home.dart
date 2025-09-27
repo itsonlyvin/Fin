@@ -22,20 +22,19 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final empController = Get.find<EmployeeController>();
 
+  String status = "--";
   String inTime = "--:--";
   String outTime = "--:--";
-  String workedHours = "00:00";
+  String totalHours = "00:00";
+  String adminRemarks = "";
   bool isLoading = false;
 
   /// ✅ Ask for permissions
   Future<void> _requestPermissions() async {
-    await [
-      Permission.camera,
-      Permission.location,
-    ].request();
+    await [Permission.camera, Permission.location].request();
   }
 
-  /// ✅ Get location
+  /// ✅ Get current location
   Future<Position> _getLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) throw Exception("Location services disabled");
@@ -120,40 +119,63 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// ✅ Mark IN/OUT
-  Future<void> _markAttendance(bool isIn) async {
+  /// ✅ Fetch daily attendance from backend
+  Future<void> _fetchDailyAttendance() async {
     try {
       setState(() => isLoading = true);
 
-      // 1. Scan QR
-      String? qrCode = await _scanQr();
-      if (qrCode == null) throw Exception("No QR code scanned");
+      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      final url = Uri.parse(
+          "${AppConfig.baseUrl}/api/attendance/daily/${empController.empId.value}?date=$today");
 
-      // 2. Location
-      Position position = await _getLocation();
-
-      // 3. API
-      String url = isIn
-          ? "${AppConfig.baseUrl}/api/attendance/in/${empController.empId.value}"
-          : "${AppConfig.baseUrl}/api/attendance/out/${empController.empId.value}";
-
-      final response = await http.post(
-        Uri.parse(url),
-        body: {
-          "latitude": position.latitude.toString(),
-          "longitude": position.longitude.toString(),
-          "qrCode": qrCode,
-        },
-      );
+      final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
         setState(() {
-          inTime = data["clockIn"] ?? inTime;
-          outTime = data["clockOut"] ?? outTime;
-          workedHours = data["totalHours"]?.toString() ?? workedHours;
+          status = data["status"] ?? "--";
+          inTime = data["clockIn"] != null
+              ? DateFormat('hh:mm a').format(DateTime.parse(data["clockIn"]))
+              : "--:--";
+          outTime = data["clockOut"] != null
+              ? DateFormat('hh:mm a').format(DateTime.parse(data["clockOut"]))
+              : "--:--";
+          totalHours = data["totalHours"]?.toStringAsFixed(2) ?? "00:00";
+          adminRemarks = data["adminRemarks"] ?? "";
         });
+      } else {
+        throw Exception("Failed to fetch daily attendance");
+      }
+    } catch (e) {
+      _showErrorDialog("Error fetching attendance: $e");
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
+  /// ✅ Mark IN/OUT attendance
+  Future<void> _markAttendance(bool isIn) async {
+    try {
+      setState(() => isLoading = true);
+
+      String? qrCode = await _scanQr();
+      if (qrCode == null) throw Exception("No QR code scanned");
+
+      Position position = await _getLocation();
+
+      String url = isIn
+          ? "${AppConfig.baseUrl}/api/attendance/in/${empController.empId.value}"
+          : "${AppConfig.baseUrl}/api/attendance/out/${empController.empId.value}";
+
+      final response = await http.post(Uri.parse(url), body: {
+        "latitude": position.latitude.toString(),
+        "longitude": position.longitude.toString(),
+        "qrCode": qrCode,
+      });
+
+      if (response.statusCode == 200) {
+        await _fetchDailyAttendance();
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -164,21 +186,13 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       } else {
-        // 🔥 Extract backend error
         String errorMessage = "Something went wrong!";
         try {
           final errorData = json.decode(response.body);
-          if (errorData["message"] != null) {
-            errorMessage = errorData["message"];
-          } else if (errorData["error"] != null) {
-            errorMessage = errorData["error"];
-          } else {
-            errorMessage = "Server error (${response.statusCode})";
-          }
-        } catch (_) {
-          errorMessage = "Server error (${response.statusCode})";
-        }
-
+          errorMessage = errorData["message"] ??
+              errorData["error"] ??
+              "Server error (${response.statusCode})";
+        } catch (_) {}
         _showErrorDialog(errorMessage);
       }
     } catch (e) {
@@ -189,27 +203,36 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _fetchDailyAttendance();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final dark = THelperFunctions.isDarkMode(context);
     final now = DateTime.now();
     final formattedTime = DateFormat('hh:mm a').format(now);
     final formattedDate = DateFormat('EEEE, MMM d').format(now);
-    final circleSize = MediaQuery.of(context).size.width * 0.5;
+    final circleSize = MediaQuery.of(context).size.width * 0.6;
 
     final List<Map<String, dynamic>> items = [
       {"icon": Iconsax.clock, "value": inTime, "label": "In"},
       {"icon": Iconsax.clock, "value": outTime, "label": "Out"},
-      {"icon": Iconsax.tick_circle, "value": workedHours, "label": "Hrs"},
+      {
+        "icon": Iconsax.tick_circle,
+        "value": "${totalHours} hrs",
+        "label": "Hrs"
+      },
     ];
 
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.only(
-          top: TSizes.appBarHeight,
-          bottom: TSizes.sm,
-          left: TSizes.defaultSpace,
-          right: TSizes.defaultSpace,
-        ),
+            top: TSizes.appBarHeight,
+            bottom: TSizes.defaultSpace,
+            left: TSizes.defaultSpace,
+            right: TSizes.defaultSpace),
         child: Column(
           children: [
             // Header
@@ -275,51 +298,88 @@ class _HomePageState extends State<HomePage> {
                             : Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text("Shift Time",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(color: Colors.white)),
-                                  const SizedBox(height: TSizes.sm),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                  // Text("Shift Details",
+                                  //     style: Theme.of(context)
+                                  //         .textTheme
+                                  //         .bodyMedium
+                                  //         ?.copyWith(color: Colors.white)),
+                                  // const SizedBox(height: TSizes.sm),
+                                  Column(
                                     children: [
-                                      ElevatedButton(
-                                        onPressed: () => _markAttendance(true),
-                                        child: const Text("Mark IN"),
-                                      ),
-                                      const SizedBox(width: 20),
-                                      ElevatedButton(
-                                        onPressed: () => _markAttendance(false),
-                                        child: const Text("Mark OUT"),
-                                      ),
+                                      // Text("Status: $status",
+                                      //     style: Theme.of(context)
+                                      //         .textTheme
+                                      //         .bodyMedium
+                                      //         ?.copyWith(color: Colors.white)),
+                                      // Text("In: $inTime",
+                                      //     style: Theme.of(context)
+                                      //         .textTheme
+                                      //         .bodyMedium
+                                      //         ?.copyWith(color: Colors.white)),
+                                      // Text("Out: $outTime",
+                                      //     style: Theme.of(context)
+                                      //         .textTheme
+                                      //         .bodyMedium
+                                      //         ?.copyWith(color: Colors.white)),
+                                      // Text("Hours: $totalHours",
+                                      //     style: Theme.of(context)
+                                      //         .textTheme
+                                      //         .bodyMedium
+                                      //         ?.copyWith(color: Colors.white)),
+                                      // Text("Remarks: $adminRemarks",
+                                      //     style: Theme.of(context)
+                                      //         .textTheme
+                                      //         .bodyMedium
+                                      //         ?.copyWith(color: Colors.white)),
+                                      // const SizedBox(height: TSizes.sm),
                                     ],
-                                  )
+                                  ),
                                 ],
                               ),
                       ),
                     ),
                   ),
-
-                  // IN/OUT/Hours
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: items.map((item) {
-                      return Column(
-                        children: [
-                          Icon(item["icon"] as IconData, size: 28),
-                          const SizedBox(height: TSizes.sm),
-                          Text(item["value"] as String,
-                              style: Theme.of(context).textTheme.bodyLarge),
-                          const SizedBox(height: TSizes.dividerHeight),
-                          Text(item["label"] as String,
-                              style: Theme.of(context).textTheme.bodySmall),
-                        ],
-                      );
-                    }).toList(),
-                  ),
                 ],
               ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                SizedBox(
+                  width: 120,
+                  child: ElevatedButton(
+                    onPressed: () => _markAttendance(true),
+                    child: const Text("Mark IN"),
+                  ),
+                ),
+                const SizedBox(width: 20),
+                SizedBox(
+                  width: 120,
+                  child: ElevatedButton(
+                    onPressed: () => _markAttendance(false),
+                    child: const Text("Mark OUT"),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: TSizes.defaultSpace),
+
+            // IN/OUT/Hours
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: items.map((item) {
+                return Column(
+                  children: [
+                    Icon(item["icon"] as IconData, size: 28),
+                    const SizedBox(height: TSizes.sm),
+                    Text(item["value"] as String,
+                        style: Theme.of(context).textTheme.bodyLarge),
+                    const SizedBox(height: TSizes.dividerHeight),
+                    Text(item["label"] as String,
+                        style: Theme.of(context).textTheme.bodySmall),
+                  ],
+                );
+              }).toList(),
             ),
           ],
         ),

@@ -49,7 +49,7 @@ class NavigationMenu extends StatelessWidget {
             ),
             NavigationDestination(
               icon: const Icon(Iconsax.document),
-              label: admin ? 'Service' : 'Attendance',
+              label: admin ? 'Service' : 'Details',
             ),
             const NavigationDestination(
               icon: Icon(Iconsax.notification),
@@ -91,7 +91,7 @@ class NavigationController extends GetxController {
       // Employee screens
       screens = [
         const HomePage(),
-        const AttendanceHistory(),
+        const EmployeeInfo(),
         const Notifications(),
         const ProfileScreen(),
       ];
