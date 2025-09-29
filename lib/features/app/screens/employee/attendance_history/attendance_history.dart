@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:t_store/employee_controller.dart';
-import 'package:t_store/features/app/screens/admin/home/backservice/AttendanceReport.dart';
+import 'package:t_store/features/app/screens/admin/home/backservice/attendance_report.dart';
 import 'package:t_store/features/app/screens/admin/home/backservice/daily_attendance.dart';
 import 'package:t_store/features/app/screens/admin/home/backservice/employee_model.dart';
 import 'package:t_store/features/app/screens/admin/home/backservice/employeeservice.dart';
@@ -151,10 +151,10 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
   }
 
   void showEmployeeDetails(Employee employee) {
-    final TextEditingController salaryController =
-        TextEditingController(text: employee.salary.toString());
-    final TextEditingController bonusController =
-        TextEditingController(text: employee.bonus.toString());
+    // final TextEditingController salaryController =
+    //     TextEditingController(text: employee.salary.toString());
+    // final TextEditingController bonusController =
+    //     TextEditingController(text: employee.bonus.toString());
 
     showModalBottomSheet(
       context: context,
@@ -210,11 +210,11 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
   }
 
   void showDayDetails(DailyAttendance day) {
-    bool isPresent = day.status.toLowerCase() == "present";
-    bool halfDay = day.status.toLowerCase() == "half-day";
-    bool allowOvertime = day.overtimeEnabled ?? false;
-    TextEditingController remarksController =
-        TextEditingController(text: day.adminRemarks ?? "");
+    // bool isPresent = day.status.toLowerCase() == "present";
+    // bool halfDay = day.status.toLowerCase() == "half-day";
+    // bool allowOvertime = day.overtimeEnabled ?? false;
+    // TextEditingController remarksController =
+    //     TextEditingController(text: day.adminRemarks ?? "");
 
     showModalBottomSheet(
       context: context,
@@ -284,7 +284,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
   Widget build(BuildContext context) {
     final years = List.generate(5, (i) => DateTime.now().year - i);
     final months = List.generate(12, (i) => i + 1);
-    final empController = Get.find<EmployeeController>();
+    // final empController = Get.find<EmployeeController>();
 
     return Scaffold(
       body: Padding(

@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:t_store/appconfig.dart';
 
 class EmpIdPage extends StatefulWidget {
-  const EmpIdPage({Key? key}) : super(key: key);
+  const EmpIdPage({super.key});
 
   @override
   State<EmpIdPage> createState() => _EmpIdPageState();
