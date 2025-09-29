@@ -264,6 +264,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                     if (day.totalHours != null)
                       Text("Total Hours: ${day.totalHours}"),
                     Text("Admin Remarks: ${day.adminRemarks}"),
+                    const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => Navigator.pop(context),
                       child: const Center(child: Text("Close")),
