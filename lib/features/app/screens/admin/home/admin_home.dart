@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:t_store/employee_controller.dart';
+import 'package:t_store/utils/employee_controller.dart';
 import 'package:t_store/features/app/screens/admin/home/employee/employee_list.dart';
 import 'package:t_store/features/app/screens/employee/attendance_history/widgets/specialColumn.dart';
 import 'package:t_store/utils/constants/image_strings.dart';

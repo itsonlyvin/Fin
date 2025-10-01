@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:t_store/employee_controller.dart';
+import 'package:t_store/utils/employee_controller.dart';
 import 'package:t_store/features/app/screens/admin/home/backservice/attendance_report.dart';
 import 'package:t_store/features/app/screens/admin/home/backservice/daily_attendance.dart';
 import 'package:t_store/features/app/screens/admin/home/backservice/employee_model.dart';
@@ -129,9 +129,9 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                 Text(
                     "Salary Earned: ₹${report.salaryEarned.toStringAsFixed(2)}"),
                 Text("Bonus: ₹${report.bonusEarned.toStringAsFixed(2)}"),
-                Text(
-                  "Total Salary: ₹${(report.bonusEarned + report.salaryEarned + report.overtimePay).toStringAsFixed(2)}",
-                ),
+                // Text(
+                //   "Total Salary: ₹${(report.bonusEarned + report.salaryEarned + report.overtimePay).toStringAsFixed(2)}",
+                // ),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,

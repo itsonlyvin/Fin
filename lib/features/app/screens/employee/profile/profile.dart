@@ -3,13 +3,12 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:t_store/common/widgets/appbar/appbar.dart';
-import 'package:t_store/common/widgets/images/t_circular_image.dart';
 import 'package:t_store/features/app/screens/employee/profile/widgets/header.dart';
 import 'package:t_store/features/app/screens/employee/profile/widgets/profile.dart';
 import 'package:t_store/features/authentication/screens/onboarding/onboardging.dart';
-import 'package:t_store/utils/constants/image_strings.dart';
 import 'package:t_store/utils/constants/sizes.dart';
-import 'package:t_store/employee_controller.dart';
+import 'package:t_store/utils/employee_controller.dart';
+import 'package:t_store/utils/navigation_menu.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -17,8 +16,13 @@ class ProfileScreen extends StatelessWidget {
   void _logout() {
     final storage = GetStorage();
     storage.erase(); // clear all saved login data
-    Get.delete<EmployeeController>(); // remove controller from memory
-    Get.offAll(() => const Onboardging()); // redirect to onboarding
+
+    // Clear all controllers from memory
+    Get.delete<EmployeeController>();
+    Get.delete<NavigationController>();
+
+    // Reset navigation stack completely
+    Get.offAll(() => const Onboardging());
   }
 
   @override
@@ -39,22 +43,22 @@ class ProfileScreen extends StatelessWidget {
             child: Column(
               children: [
                 /// Profile Picture
-                SizedBox(
-                  width: double.infinity,
-                  child: Column(
-                    children: [
-                      const TCircularImage(
-                        image: TImages.facebook,
-                        width: 80,
-                        height: 80,
-                      ),
-                      // TextButton(
-                      //   onPressed: () {},
-                      //   child: const Text('Change Profile Picture'),
-                      // ),
-                    ],
-                  ),
-                ),
+                // SizedBox(
+                //   width: double.infinity,
+                //   child: Column(
+                //     children: [
+                //       const TCircularImage(
+                //         image: TImages.facebook,
+                //         width: 80,
+                //         height: 80,
+                //       ),
+                //       // TextButton(
+                //       //   onPressed: () {},
+                //       //   child: const Text('Change Profile Picture'),
+                //       // ),
+                //     ],
+                //   ),
+                // ),
 
                 const SizedBox(height: TSizes.spaceBtwItems / 2),
                 const Divider(),

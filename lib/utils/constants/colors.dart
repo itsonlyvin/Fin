@@ -8,10 +8,10 @@ class TColors {
   static const Color op2 = Color.fromRGBO(71, 193, 195, 1);
 
   // calander theme colors
-  static const Color present = Color.fromRGBO(47, 165, 167, 1);
-  static const Color absent = Color.fromARGB(255, 214, 32, 32);
-  static const Color halfDay = Color.fromARGB(255, 90, 16, 96);
-  static const Color holiday = Color.fromARGB(255, 46, 227, 25);
+  static const Color present = Color.fromRGBO(57, 167, 47, 1);
+  static const Color absent = Color.fromARGB(255, 255, 0, 0);
+  static const Color halfDay = Color.fromARGB(255, 217, 98, 13);
+  static const Color holiday = Color.fromARGB(255, 8, 255, 255);
   static const Color nodata = Color.fromARGB(255, 77, 80, 90);
 
   // App theme colors

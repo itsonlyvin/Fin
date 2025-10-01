@@ -129,9 +129,9 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                 Text(
                     "Salary Earned: ₹${report.salaryEarned.toStringAsFixed(2)}"),
                 Text("Bonus: ₹${report.bonusEarned.toStringAsFixed(2)}"),
-                Text(
-                  "Total Salary: ₹${(report.bonusEarned + report.salaryEarned + report.overtimePay).toStringAsFixed(2)}",
-                ),
+                // Text(
+                //   "Total Salary: ₹${(report.bonusEarned + report.salaryEarned + report.overtimePay).toStringAsFixed(2)}",
+                // ),
 
                 const SizedBox(height: 16),
                 Row(

@@ -40,7 +40,13 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  final bool finOpenArms = true;
+  late bool finOpenArms;
+
+  @override
+  void initState() {
+    super.initState();
+    finOpenArms = widget.isfin;
+  }
 
   /// 🔹 Register function
   Future<void> _register() async {

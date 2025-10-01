@@ -7,8 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:t_store/appconfig.dart';
-import 'package:t_store/employee_controller.dart';
+import 'package:t_store/utils/appconfig.dart';
+import 'package:t_store/utils/employee_controller.dart';
 import 'package:t_store/utils/constants/sizes.dart';
 import 'package:t_store/utils/helpers/helper_functions.dart';
 

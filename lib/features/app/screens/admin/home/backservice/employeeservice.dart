@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:t_store/appconfig.dart';
+import 'package:t_store/utils/appconfig.dart';
 import 'package:t_store/features/app/screens/admin/home/backservice/attendance_report.dart';
 import 'daily_attendance.dart';
 import 'employee_model.dart';

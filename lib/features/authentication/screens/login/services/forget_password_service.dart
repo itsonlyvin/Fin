@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:t_store/appconfig.dart';
+import 'package:t_store/utils/appconfig.dart';
 
 class ForgetPasswordService {
   static const String baseUrl = AppConfig.baseUrl;
