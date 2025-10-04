@@ -22,7 +22,6 @@ class Onboardging extends StatelessWidget {
           right: TSizes.spaceBtwSections,
         ),
         child: SingleChildScrollView(
-          // ✅ Fixed: Removed Expanded
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [

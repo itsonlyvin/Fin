@@ -22,7 +22,7 @@ class AuthService {
       "companyEmail": email,
       "phoneNumber": phone,
       "password": password,
-      "finOrOpenArms": finOpenArms,
+      "finOpenArms": finOpenArms,
     });
 
     return _sendRequest(url, body);
