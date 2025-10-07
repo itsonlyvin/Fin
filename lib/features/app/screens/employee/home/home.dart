@@ -240,7 +240,7 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Welcome 👋 ${empController.empId.value}",
+                  "Welcome ${empController.empId.value}",
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
               ],
