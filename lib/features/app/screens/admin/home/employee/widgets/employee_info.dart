@@ -63,7 +63,6 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
     }
   }
 
-  /// Fetch employee first, then show bottom sheet
   void fetchEmployeeAndShowDetails() async {
     try {
       final employee =
@@ -76,7 +75,6 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
     }
   }
 
-//// salary emp details
   void fetchReportAndShow() async {
     try {
       final report = await employeeService.fetchMonthlyReport(
@@ -117,7 +115,6 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                 Text("Present: ${report.presentDays}"),
                 Text("Half Days: ${report.halfDays}"),
                 Text("Absent: ${report.absentDays}"),
-                //Text("Late: ${report.lateDays}"),
                 Text("Paid Leave: ${report.paidLeave - report.holidayCount}"),
                 Text("Holidays: ${report.holidayCount}"),
                 const SizedBox(height: 8),
@@ -129,10 +126,6 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                 Text(
                     "Salary Earned: ₹${report.salaryEarned.toStringAsFixed(2)}"),
                 Text("Bonus: ₹${report.bonusEarned.toStringAsFixed(2)}"),
-                // Text(
-                //   "Total Salary: ₹${(report.bonusEarned + report.salaryEarned + report.overtimePay).toStringAsFixed(2)}",
-                // ),
-
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -151,7 +144,6 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
     );
   }
 
-  /// Show full employee details in bottom sheet
   void showEmployeeDetails(Employee employee) {
     final TextEditingController salaryController =
         TextEditingController(text: employee.salary.toString());
@@ -234,8 +226,8 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                                 content: Text("Salary & Bonus updated")),
                           );
 
-                          Navigator.pop(context); // close bottom sheet
-                          fetchAttendance(); // refresh attendance if needed
+                          Navigator.pop(context);
+                          fetchAttendance();
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text("Failed: $e")),
@@ -255,13 +247,20 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
     );
   }
 
-  /// Show daily attendance details
   void showDayDetails(DailyAttendance day) {
     bool isPresent = day.status.toLowerCase() == "present";
     bool halfDay = day.status.toLowerCase() == "half-day";
     bool allowOvertime = day.overtimeEnabled ?? false;
     TextEditingController remarksController =
         TextEditingController(text: day.adminRemarks ?? "");
+    TextEditingController clockInController = TextEditingController(
+        text: day.clockIn != null
+            ? DateFormat('yyyy-MM-ddTHH:mm').format(day.clockIn!)
+            : '');
+    TextEditingController clockOutController = TextEditingController(
+        text: day.clockOut != null
+            ? DateFormat('yyyy-MM-ddTHH:mm').format(day.clockOut!)
+            : '');
 
     showModalBottomSheet(
       context: context,
@@ -302,14 +301,25 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                     ),
                     const SizedBox(height: 8),
                     Text("Current Status: ${day.status}"),
-                    if (day.clockIn != null)
-                      Text("Clock In: ${DateFormat.jm().format(day.clockIn!)}"),
-                    if (day.clockOut != null)
-                      Text(
-                          "Clock Out: ${DateFormat.jm().format(day.clockOut!)}"),
                     if (day.totalHours != null)
                       Text("Total Hours: ${day.totalHours}"),
                     const Divider(),
+                    TextField(
+                      controller: clockInController,
+                      decoration: const InputDecoration(
+                        labelText: "Clock In (yyyy-MM-ddTHH:mm)",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: clockOutController,
+                      decoration: const InputDecoration(
+                        labelText: "Clock Out (yyyy-MM-ddTHH:mm)",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     CheckboxListTile(
                       title: const Text("Mark Present"),
                       value: isPresent,
@@ -348,6 +358,12 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                             isPresent: isPresent,
                             halfDay: halfDay,
                             remarks: remarksController.text,
+                            clockIn: clockInController.text.isNotEmpty
+                                ? clockInController.text
+                                : null,
+                            clockOut: clockOutController.text.isNotEmpty
+                                ? clockOutController.text
+                                : null,
                           );
                           Navigator.pop(context);
                           fetchAttendance();
@@ -389,13 +405,11 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Employee Header
             InkWell(
               onTap: fetchEmployeeAndShowDetails,
-              splashColor: TColors.primary.withOpacity(0.3), // ripple color
-              highlightColor:
-                  TColors.primary.withOpacity(0.1), // background when pressed
-              borderRadius: BorderRadius.circular(12), // ripple color
+              splashColor: TColors.primary.withOpacity(0.3),
+              highlightColor: TColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
               child: Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(
@@ -414,11 +428,9 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
               ),
             ),
             const SizedBox(height: TSizes.defaultSpace),
-            // Monthly Report Card (same style as Employee Header)
             InkWell(
-              splashColor: TColors.primary.withOpacity(0.3), // ripple color
-              highlightColor:
-                  TColors.primary.withOpacity(0.1), // background when pressed
+              splashColor: TColors.primary.withOpacity(0.3),
+              highlightColor: TColors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
               onTap: fetchReportAndShow,
               child: Card(
@@ -437,7 +449,6 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
               ),
             ),
             const SizedBox(height: TSizes.defaultSpace),
-            // Month & Year selection
             Row(
               children: [
                 Expanded(
@@ -489,8 +500,6 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                 ),
               ],
             ),
-
-            // Calendar-like Attendance View
             Expanded(
               child: FutureBuilder<List<DailyAttendance>>(
                 future: attendanceFuture,

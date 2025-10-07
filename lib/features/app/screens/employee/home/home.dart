@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -29,12 +30,35 @@ class _HomePageState extends State<HomePage> {
   String adminRemarks = "";
   bool isLoading = false;
 
-  /// ✅ Ask for permissions
+  // Counter
+  String elapsedTime = "00:00:00";
+  Timer? _counterTimer;
+  Timer? _refreshTimer;
+  DateTime? _clockInTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDailyAttendance();
+    // Auto-refresh every 10 seconds
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      _fetchDailyAttendance();
+    });
+  }
+
+  @override
+  void dispose() {
+    _counterTimer?.cancel();
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Ask for permissions
   Future<void> _requestPermissions() async {
     await [Permission.camera, Permission.location].request();
   }
 
-  /// ✅ Get current location
+  /// Get current location
   Future<Position> _getLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) throw Exception("Location services disabled");
@@ -55,7 +79,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// ✅ Scan QR code
+  /// Scan QR code
   Future<String?> _scanQr() async {
     await _requestPermissions();
     String? scannedCode;
@@ -102,7 +126,7 @@ class _HomePageState extends State<HomePage> {
     return scannedCode;
   }
 
-  /// ✅ Error dialog
+  /// Show error dialog
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
@@ -119,7 +143,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// ✅ Fetch daily attendance from backend
+  /// Fetch daily attendance
   Future<void> _fetchDailyAttendance() async {
     try {
       setState(() => isLoading = true);
@@ -143,18 +167,45 @@ class _HomePageState extends State<HomePage> {
               : "--:--";
           totalHours = data["totalHours"]?.toStringAsFixed(2) ?? "00:00";
           adminRemarks = data["adminRemarks"] ?? "";
+
+          // Start or stop counter
+          if (data["clockIn"] != null && data["clockOut"] == null) {
+            _clockInTime = DateTime.parse(data["clockIn"]);
+            _startCounter();
+          } else {
+            _counterTimer?.cancel();
+            elapsedTime = "00:00:00";
+          }
         });
       } else {
         throw Exception("Failed to fetch daily attendance");
       }
     } catch (e) {
-      _showErrorDialog("Error fetching attendance: $e");
+      // optionally ignore errors for auto-refresh
     } finally {
       setState(() => isLoading = false);
     }
   }
 
-  /// ✅ Mark IN/OUT attendance
+  /// Start live counter
+  void _startCounter() {
+    _counterTimer?.cancel();
+    if (_clockInTime == null) return;
+
+    _counterTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      final now = DateTime.now();
+      final duration = now.difference(_clockInTime!);
+      final hours = duration.inHours.toString().padLeft(2, '0');
+      final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
+      final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+
+      setState(() {
+        elapsedTime = "$hours:$minutes:$seconds";
+      });
+    });
+  }
+
+  /// Mark IN/OUT attendance
   Future<void> _markAttendance(bool isIn) async {
     try {
       setState(() => isLoading = true);
@@ -200,12 +251,6 @@ class _HomePageState extends State<HomePage> {
     } finally {
       setState(() => isLoading = false);
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchDailyAttendance();
   }
 
   @override
@@ -264,7 +309,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
 
-                  // Attendance Circle
+                  // Attendance Circle with counter
                   Padding(
                     padding: const EdgeInsets.only(bottom: TSizes.appBarHeight),
                     child: Container(
@@ -298,42 +343,17 @@ class _HomePageState extends State<HomePage> {
                             : Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  // Text("Shift Details",
-                                  //     style: Theme.of(context)
-                                  //         .textTheme
-                                  //         .bodyMedium
-                                  //         ?.copyWith(color: Colors.white)),
-                                  // const SizedBox(height: TSizes.sm),
-                                  Column(
-                                    children: [
-                                      // Text("Status: $status",
-                                      //     style: Theme.of(context)
-                                      //         .textTheme
-                                      //         .bodyMedium
-                                      //         ?.copyWith(color: Colors.white)),
-                                      // Text("In: $inTime",
-                                      //     style: Theme.of(context)
-                                      //         .textTheme
-                                      //         .bodyMedium
-                                      //         ?.copyWith(color: Colors.white)),
-                                      // Text("Out: $outTime",
-                                      //     style: Theme.of(context)
-                                      //         .textTheme
-                                      //         .bodyMedium
-                                      //         ?.copyWith(color: Colors.white)),
-                                      // Text("Hours: $totalHours",
-                                      //     style: Theme.of(context)
-                                      //         .textTheme
-                                      //         .bodyMedium
-                                      //         ?.copyWith(color: Colors.white)),
-                                      // Text("Remarks: $adminRemarks",
-                                      //     style: Theme.of(context)
-                                      //         .textTheme
-                                      //         .bodyMedium
-                                      //         ?.copyWith(color: Colors.white)),
-                                      // const SizedBox(height: TSizes.sm),
-                                    ],
-                                  ),
+                                  Text("Elapsed Time",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(color: Colors.white)),
+                                  const SizedBox(height: 8),
+                                  Text(elapsedTime,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .headlineMedium
+                                          ?.copyWith(color: Colors.white)),
                                 ],
                               ),
                       ),
@@ -342,6 +362,8 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
+
+            // IN/OUT Buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [

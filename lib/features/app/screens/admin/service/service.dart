@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:t_store/features/app/screens/admin/service/pages/empidcreation.dart';
 import 'package:t_store/features/app/screens/admin/service/pages/holiday_page.dart';
+import 'package:t_store/features/app/screens/admin/service/pages/salary_page.dart';
 
 class Service extends StatelessWidget {
   const Service({super.key});
@@ -35,6 +36,17 @@ class Service extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                       builder: (context) => const HolidayCalendarPage()),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            ServiceCard(
+              title: 'Monthly Salary',
+              icon: Icons.payments,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SalaryPage()),
                 );
               },
             ),
