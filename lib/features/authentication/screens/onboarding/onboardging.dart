@@ -14,6 +14,16 @@ class Onboardging extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = THelperFunctions.isDarkMode(context);
 
+    // Helper method to add transition
+    void navigateWithTransition(Widget page) {
+      Get.to(
+        () => page,
+        transition: Transition.rightToLeft, // You can change this
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+      );
+    }
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.only(
@@ -27,8 +37,8 @@ class Onboardging extends StatelessWidget {
             children: [
               // Fin login
               GestureDetector(
-                onTap: () => Get.to(
-                  () => const LoginScreen(
+                onTap: () => navigateWithTransition(
+                  const LoginScreen(
                     logo: TImages.finDarkAppLogo,
                     color1: TColors.fin1,
                     color2: TColors.fin2,
@@ -37,19 +47,24 @@ class Onboardging extends StatelessWidget {
                 ),
                 child: SpecialColumn(
                   dark: dark,
-                  child: Image(
-                    height: 150,
-                    image: AssetImage(
-                      dark ? TImages.finDarkAppLogo : TImages.finLightAppLogo,
+                  child: Hero(
+                    tag: 'fin_logo',
+                    child: Image(
+                      height: 150,
+                      image: AssetImage(
+                        dark ? TImages.finDarkAppLogo : TImages.finLightAppLogo,
+                      ),
                     ),
                   ),
                 ),
               ),
 
+              const SizedBox(height: 30),
+
               // Open login
               GestureDetector(
-                onTap: () => Get.to(
-                  () => const LoginScreen(
+                onTap: () => navigateWithTransition(
+                  const LoginScreen(
                     logo: TImages.openDarkAppLogo,
                     color1: Color.fromARGB(255, 203, 140, 140),
                     color2: Color.fromARGB(255, 206, 103, 197),
@@ -58,19 +73,26 @@ class Onboardging extends StatelessWidget {
                 ),
                 child: SpecialColumn(
                   dark: dark,
-                  child: Image(
-                    height: 150,
-                    image: AssetImage(
-                      dark ? TImages.openDarkAppLogo : TImages.openLightAppLogo,
+                  child: Hero(
+                    tag: 'open_logo',
+                    child: Image(
+                      height: 150,
+                      image: AssetImage(
+                        dark
+                            ? TImages.openDarkAppLogo
+                            : TImages.openLightAppLogo,
+                      ),
                     ),
                   ),
                 ),
               ),
 
+              const SizedBox(height: 30),
+
               // Admin login
               GestureDetector(
-                onTap: () => Get.to(
-                  () => const LoginScreen(
+                onTap: () => navigateWithTransition(
+                  const LoginScreen(
                     admin: true,
                     logo: TImages.finDarkAppLogo,
                     color1: TColors.fin1,
@@ -80,12 +102,15 @@ class Onboardging extends StatelessWidget {
                 ),
                 child: SpecialColumn(
                   dark: dark,
-                  child: SizedBox(
-                    height: 150,
-                    child: Center(
-                      child: Text(
-                        "ADMIN",
-                        style: Theme.of(context).textTheme.displayLarge,
+                  child: Hero(
+                    tag: 'admin_text',
+                    child: SizedBox(
+                      height: 150,
+                      child: Center(
+                        child: Text(
+                          "ADMIN",
+                          style: Theme.of(context).textTheme.displayLarge,
+                        ),
                       ),
                     ),
                   ),
