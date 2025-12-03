@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:t_store/utils/appconfig.dart';
+import 'package:openarms/utils/appconfig.dart';
 
 class AuthService {
   static const String baseUrl = AppConfig.baseUrl;

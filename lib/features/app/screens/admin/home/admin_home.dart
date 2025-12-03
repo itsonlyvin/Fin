@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:t_store/utils/employee_controller.dart';
-import 'package:t_store/features/app/screens/admin/home/employee/employee_list.dart';
-import 'package:t_store/features/app/screens/employee/attendance_history/widgets/specialColumn.dart';
-import 'package:t_store/utils/constants/image_strings.dart';
-import 'package:t_store/utils/constants/sizes.dart';
-import 'package:t_store/utils/helpers/helper_functions.dart';
+import 'package:openarms/utils/employee_controller.dart';
+import 'package:openarms/features/app/screens/admin/home/employee/employee_list.dart';
+import 'package:openarms/features/app/screens/employee/attendance_history/widgets/specialColumn.dart';
+import 'package:openarms/utils/constants/image_strings.dart';
+import 'package:openarms/utils/constants/sizes.dart';
+import 'package:openarms/utils/helpers/helper_functions.dart';
+import 'package:openarms/utils/constants/colors.dart';
 
 class AdminHome extends StatelessWidget {
   const AdminHome({super.key});
@@ -17,6 +18,8 @@ class AdminHome extends StatelessWidget {
     final empController = Get.find<EmployeeController>();
 
     return Scaffold(
+      backgroundColor:
+          dark ? const Color.fromARGB(255, 0, 0, 0) : TColors.white,
       body: Column(
         children: [
           Expanded(
@@ -48,9 +51,7 @@ class AdminHome extends StatelessWidget {
                       child: Image(
                         height: 150,
                         image: AssetImage(
-                          dark
-                              ? TImages.finDarkAppLogo
-                              : TImages.finLightAppLogo,
+                          dark ? TImages.finDarkLogo : TImages.finLightLogo,
                         ),
                       ),
                     ),
@@ -64,9 +65,7 @@ class AdminHome extends StatelessWidget {
                       child: Image(
                         height: 150,
                         image: AssetImage(
-                          dark
-                              ? TImages.openDarkAppLogo
-                              : TImages.openLightAppLogo,
+                          dark ? TImages.openDarkLogo : TImages.openLightLogo,
                         ),
                       ),
                     ),

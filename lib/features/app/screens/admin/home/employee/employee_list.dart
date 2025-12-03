@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:t_store/features/app/screens/admin/home/backservice/employee_model.dart';
-import 'package:t_store/features/app/screens/admin/home/backservice/employeeservice.dart';
-import 'package:t_store/features/app/screens/admin/home/employee/widgets/employee_info.dart';
-import 'package:t_store/utils/constants/sizes.dart';
+import 'package:openarms/features/app/screens/admin/home/backservice/employee_model.dart';
+import 'package:openarms/features/app/screens/admin/home/backservice/employeeservice.dart';
+import 'package:openarms/features/app/screens/admin/home/employee/widgets/employee_info.dart';
+import 'package:openarms/utils/constants/sizes.dart';
+import 'package:openarms/utils/helpers/helper_functions.dart';
 
 class EmployeeList extends StatelessWidget {
   final String company;
@@ -12,8 +13,12 @@ class EmployeeList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final EmployeeService employeeService = EmployeeService();
-
+    final isDark = THelperFunctions.isDarkMode(context);
     return Scaffold(
+      backgroundColor: isDark
+          ? const Color.fromARGB(255, 0, 0, 0)
+          : const Color.fromARGB(255, 255, 255, 255)
+              .withAlpha((255 * 0.1).toInt()),
       body: Padding(
         padding: const EdgeInsets.only(
           top: TSizes.appBarHeight,

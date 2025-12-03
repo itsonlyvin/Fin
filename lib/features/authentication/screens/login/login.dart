@@ -4,16 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:t_store/utils/employee_controller.dart';
-import 'package:t_store/common/widgets/custom_shapes/containers/primary_header_container.dart';
-import 'package:t_store/common/widgets/login_signup/login_signup_divider.dart';
-import 'package:t_store/features/authentication/screens/login/forgetpassword.dart';
-import 'package:t_store/features/authentication/screens/login/services/login_service.dart';
-import 'package:t_store/features/authentication/screens/onboarding/onboardging.dart';
-import 'package:t_store/features/authentication/screens/signup/signup.dart';
-import 'package:t_store/utils/navigation_menu.dart';
-import 'package:t_store/utils/constants/sizes.dart';
-import 'package:t_store/utils/constants/text_strings.dart';
+import 'package:openarms/common/widgets/login_signup/login_signup_divider.dart';
+import 'package:openarms/features/authentication/auth_template.dart';
+import 'package:openarms/utils/employee_controller.dart';
+
+import 'package:openarms/features/authentication/screens/login/forgetpassword.dart';
+import 'package:openarms/features/authentication/screens/login/services/login_service.dart';
+import 'package:openarms/features/authentication/screens/onboarding/onboardging.dart';
+import 'package:openarms/features/authentication/screens/signup/signup.dart';
+import 'package:openarms/utils/navigation_menu.dart';
+import 'package:openarms/utils/constants/sizes.dart';
+import 'package:openarms/utils/constants/text_strings.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
@@ -38,16 +39,13 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool isVisible = false;
   bool _loading = false;
 
   /// 🔹 Login function
   Future<void> _login() async {
-    if (_idController.text.trim().isEmpty ||
-        _passwordController.text.trim().isEmpty) {
-      Get.snackbar("Error", "ID and Password are required");
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() => _loading = true);
 
@@ -78,15 +76,15 @@ class _LoginScreenState extends State<LoginScreen> {
         storage.write("isFin", widget.isfin);
         if (widget.admin) storage.write("adminId", empId);
 
-        // ✅ Fetch details from backend
+        // Fetch details
         final detailsResponse = widget.admin
             ? await LoginService.getAdminDetails(empId)
             : await LoginService.getEmployeeDetails(empId);
 
         if (detailsResponse.statusCode == 200) {
           final data = jsonDecode(detailsResponse.body);
-          empController.setDetails(data); // save in GetX
-          storage.write("details", data); // optional: persist
+          empController.setDetails(data);
+          storage.write("details", data);
         }
 
         Get.snackbar("Success", response.body);
@@ -103,135 +101,96 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Header
-            TPrimaryHeaderContainer(
-              logo: widget.logo,
-              color1: widget.color1,
-              color2: widget.color2,
+    return AuthTemplate(
+      logo: widget.logo,
+      color1: widget.color1,
+      color2: widget.color2,
+      heroTag: 'loginLogo',
+      formKey: _formKey,
+      title: widget.admin ? "Admin Login" : TTexts.loginTitle,
+      fields: [
+        // Employee/Admin ID
+        TextFormField(
+          controller: _idController,
+          validator: (value) =>
+              value == null || value.isEmpty ? "ID is required" : null,
+          decoration: InputDecoration(
+            labelText: widget.admin ? TTexts.adminId : TTexts.employeeId,
+            prefixIcon: const Icon(Iconsax.personalcard),
+          ),
+        ),
+        const SizedBox(height: TSizes.spaceBtwInputFields),
+
+        // Password
+        TextFormField(
+          controller: _passwordController,
+          obscureText: !isVisible,
+          validator: (value) =>
+              value == null || value.isEmpty ? "Password is required" : null,
+          decoration: InputDecoration(
+            labelText: TTexts.password,
+            prefixIcon: const Icon(Iconsax.password_check),
+            suffixIcon: IconButton(
+              icon: Icon(isVisible ? Icons.visibility : Icons.visibility_off),
+              onPressed: () => setState(() => isVisible = !isVisible),
             ),
+          ),
+        ),
+        const SizedBox(height: TSizes.spaceBtwInputFields / 6),
 
-            Padding(
-              padding: const EdgeInsets.all(TSizes.spaceBtwSections),
-              child: Form(
-                child: Column(
-                  children: [
-                    // Title
-                    Text(
-                      widget.admin ? "Admin Login" : TTexts.loginTitle,
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: TSizes.spaceBtwInputFields),
-
-                    // Employee/Admin ID
-                    TextFormField(
-                      controller: _idController,
-                      decoration: InputDecoration(
-                        labelText:
-                            widget.admin ? TTexts.adminId : TTexts.employeeId,
-                        prefixIcon: const Icon(Iconsax.personalcard),
-                      ),
-                    ),
-                    const SizedBox(height: TSizes.spaceBtwInputFields),
-
-                    // Password
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: !isVisible,
-                      decoration: InputDecoration(
-                        labelText: TTexts.password,
-                        prefixIcon: const Icon(Iconsax.password_check),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            isVisible ? Icons.visibility : Icons.visibility_off,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              isVisible = !isVisible;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: TSizes.spaceBtwInputFields / 6),
-
-                    // Forgot Password
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: () => Get.to(() => Forgetpassword(
-                                logo: widget.logo,
-                                color1: widget.color1,
-                                color2: widget.color2,
-                                isfin: widget.isfin,
-                                admin: widget.admin,
-                              )),
-                          child: const Text(TTexts.forgetPassword),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: TSizes.spaceBtwInputFields / 6),
-
-                    // Login Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 60,
-                      child: ElevatedButton(
-                        onPressed: _loading ? null : _login,
-                        child: _loading
-                            ? const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text(TTexts.signIn),
-                      ),
-                    ),
-
-                    const SizedBox(height: TSizes.spaceBtwInputFields * 1.8),
-
-                    // Divider
-                    const TFormDivider(
-                      dividerText1: TTexts.orSignInWith,
-                      dividerText2: TTexts.orGoBack,
-                      isSecond: true,
-                    ),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextButton(
-                          onPressed: () => Get.to(() => SignupScreen(
-                                admin: widget.admin,
-                                logo: widget.logo,
-                                color1: widget.color1,
-                                color2: widget.color2,
-                                isfin: widget.isfin,
-                              )),
-                          child: const Text(TTexts.createAccount),
-                        ),
-                        TextButton(
-                          onPressed: () => Get.to(() => const Onboardging()),
-                          child: const Text(TTexts.home),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+        // Forgot Password Link
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: () => Get.to(() => ForgetPasswordScreen(
+                  logo: widget.logo,
+                  color1: widget.color1,
+                  color2: widget.color2,
+                  isfin: widget.isfin,
+                  admin: widget.admin,
+                )),
+            child: const Text(TTexts.forgetPassword),
+          ),
+        ),
+      ],
+      primaryButton: SizedBox(
+        width: double.infinity,
+        height: 60,
+        child: ElevatedButton(
+          onPressed: _loading ? null : _login,
+          child: _loading
+              ? const SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text(TTexts.signIn),
         ),
       ),
+      divider: const TFormDivider(
+        dividerText1: TTexts.orSignInWith,
+        dividerText2: TTexts.orGoBack,
+        isSecond: true,
+      ),
+      secondaryActions: [
+        TextButton(
+          onPressed: () => Get.to(() => SignupScreen(
+                admin: widget.admin,
+                logo: widget.logo,
+                color1: widget.color1,
+                color2: widget.color2,
+                isfin: widget.isfin,
+              )),
+          child: const Text(TTexts.createAccount),
+        ),
+        TextButton(
+          onPressed: () => Get.to(() => const Onboardging()),
+          child: const Text(TTexts.home),
+        ),
+      ],
     );
   }
 }

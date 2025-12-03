@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:t_store/features/app/screens/admin/home/admin_home.dart';
-import 'package:t_store/features/app/screens/admin/notifications/notifications_admin.dart';
-import 'package:t_store/features/app/screens/admin/service/service.dart';
-import 'package:t_store/features/app/screens/employee/attendance_history/attendance_history.dart';
-import 'package:t_store/features/app/screens/employee/home/home.dart';
-import 'package:t_store/features/app/screens/employee/notifications/notifications.dart';
-import 'package:t_store/features/app/screens/employee/profile/profile.dart';
-import 'package:t_store/utils/helpers/helper_functions.dart';
+import 'package:openarms/features/app/screens/admin/home/admin_home.dart';
+import 'package:openarms/features/app/screens/admin/notifications/notifications_admin.dart';
+import 'package:openarms/features/app/screens/admin/profile/profileadmin.dart';
+import 'package:openarms/features/app/screens/admin/service/service.dart';
+import 'package:openarms/features/app/screens/employee/attendance_history/attendance_history.dart';
+import 'package:openarms/features/app/screens/employee/home/home.dart';
+import 'package:openarms/features/app/screens/employee/notifications/notifications.dart';
+import 'package:openarms/features/app/screens/employee/profile/profile.dart';
+import 'package:openarms/utils/helpers/helper_functions.dart';
 
 class NavigationMenu extends StatelessWidget {
   const NavigationMenu({
@@ -33,12 +34,12 @@ class NavigationMenu extends StatelessWidget {
           onDestinationSelected: (index) =>
               controller.selectedIndex.value = index,
           backgroundColor: !darkMode
-              ? const Color.fromARGB(255, 227, 222, 222)
+              ? const Color.fromARGB(255, 255, 255, 255)
                   .withAlpha((255 * 0.1).toInt())
-              : Colors.black.withAlpha((0.1 * 255).toInt()),
+              : const Color.fromARGB(255, 0, 0, 0),
           indicatorColor: darkMode
               ? Colors.white.withAlpha((255 * 0.1).toInt())
-              : Colors.black.withAlpha((0.1 * 255).toInt()),
+              : const Color.fromARGB(255, 185, 167, 167),
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
           destinations: [
             const NavigationDestination(
@@ -83,7 +84,7 @@ class NavigationController extends GetxController {
         const AdminHome(),
         const Service(),
         const NotificationsAdmin(),
-        const ProfileScreen(),
+        const ProfileScreenAdmin(),
       ];
     } else {
       // Employee screens

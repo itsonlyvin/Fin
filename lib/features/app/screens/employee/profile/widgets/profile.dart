@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:t_store/utils/constants/sizes.dart';
+import 'package:openarms/utils/constants/sizes.dart';
 
 class TProfileMenu extends StatelessWidget {
   const TProfileMenu({
@@ -25,7 +25,7 @@ class TProfileMenu extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              flex: 5,
+              flex: 3,
               child: Text(
                 title,
                 style: Theme.of(context).textTheme.bodySmall,

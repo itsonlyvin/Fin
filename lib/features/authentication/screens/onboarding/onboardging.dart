@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:t_store/features/app/screens/employee/attendance_history/widgets/specialColumn.dart';
-import 'package:t_store/features/authentication/screens/login/login.dart';
-import 'package:t_store/utils/constants/colors.dart';
-import 'package:t_store/utils/constants/image_strings.dart';
-import 'package:t_store/utils/constants/sizes.dart';
-import 'package:t_store/utils/helpers/helper_functions.dart';
+import 'package:openarms/features/authentication/screens/login/login.dart';
+import 'package:openarms/utils/constants/colors.dart';
+import 'package:openarms/utils/constants/image_strings.dart';
+import 'package:openarms/utils/constants/sizes.dart';
+import 'package:openarms/utils/helpers/helper_functions.dart';
 
 class Onboardging extends StatelessWidget {
   const Onboardging({super.key});
@@ -134,7 +133,10 @@ class Onboardging extends StatelessWidget {
         curve: Curves.easeInOut,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [color1.withOpacity(0.8), color2.withOpacity(0.8)],
+            colors: [
+              color1.withValues(alpha: 0.8),
+              color2.withValues(alpha: 0.8)
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -194,8 +196,8 @@ class Onboardging extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              TColors.fin1.withOpacity(0.8),
-              TColors.fin2.withOpacity(0.8),
+              TColors.fin1.withValues(alpha: 0.8),
+              TColors.fin2.withValues(alpha: 0.8),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,

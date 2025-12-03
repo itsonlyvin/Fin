@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:t_store/features/app/screens/admin/service/pages/empidcreation.dart';
-import 'package:t_store/features/app/screens/admin/service/pages/holiday_page.dart';
-import 'package:t_store/features/app/screens/admin/service/pages/salary_page.dart';
+import 'package:openarms/features/app/screens/admin/service/pages/empidcreation.dart';
+import 'package:openarms/features/app/screens/admin/service/pages/holiday_page.dart';
+import 'package:openarms/features/app/screens/admin/service/pages/salary_page.dart';
+import 'package:openarms/utils/constants/colors.dart';
+import 'package:openarms/utils/helpers/helper_functions.dart';
 
 class Service extends StatelessWidget {
   const Service({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = THelperFunctions.isDarkMode(context);
     return Scaffold(
+      backgroundColor:
+          isDark ? const Color.fromARGB(255, 0, 0, 0) : TColors.white,
       appBar: AppBar(
         title: const Text('Services'),
         centerTitle: true,

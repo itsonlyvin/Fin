@@ -15,7 +15,8 @@ class TColors {
   static const Color nodata = Color.fromARGB(255, 77, 80, 90);
 
   // App theme colors
-  static const Color primary = Color.fromRGBO(71, 193, 195, 1);
+  static const Color primary = Color.fromARGB(255, 29, 80, 129);
+
   static const Color secondary = Color(0xFFFFE24B);
   static const Color accent = Color(0xFFb0c7ff);
 

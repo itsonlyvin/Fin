@@ -1,4 +1,4 @@
-import 'package:t_store/features/app/screens/admin/home/backservice/daily_attendance.dart';
+import 'package:openarms/features/app/screens/admin/home/backservice/daily_attendance.dart';
 
 /// Model for monthly attendance report
 class AttendanceReport {

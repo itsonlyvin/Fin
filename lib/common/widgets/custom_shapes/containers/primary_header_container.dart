@@ -1,9 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:t_store/common/widgets/custom_shapes/containers/circular_container.dart';
-import 'package:t_store/common/widgets/custom_shapes/curved_edges/curved_edges_widgets.dart';
-import 'package:t_store/utils/constants/colors.dart';
-import 'package:t_store/utils/constants/sizes.dart';
+import 'package:openarms/common/widgets/custom_shapes/containers/circular_container.dart';
+import 'package:openarms/common/widgets/custom_shapes/curved_edges/curved_edges_widgets.dart';
+import 'package:openarms/utils/constants/colors.dart';
+import 'package:openarms/utils/constants/sizes.dart';
 
 class TPrimaryHeaderContainer extends StatefulWidget {
   const TPrimaryHeaderContainer({

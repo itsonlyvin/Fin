@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:t_store/utils/appconfig.dart';
-import 'package:t_store/features/app/screens/admin/home/backservice/attendance_report.dart';
+import 'package:openarms/utils/appconfig.dart';
+import 'package:openarms/features/app/screens/admin/home/backservice/attendance_report.dart';
 import 'daily_attendance.dart';
 import 'employee_model.dart';
 
@@ -158,6 +158,29 @@ class EmployeeService {
     } else {
       throw Exception(
           "Failed to fetch monthly report: ${response.statusCode} ${response.body}");
+    }
+  }
+
+  Future<Employee> fetchShiftTimes(String employeeId) async {
+    final url = Uri.parse("$baseUrl/employee/$employeeId/shift");
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      return Employee.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception("Failed to fetch shift times");
+    }
+  }
+
+  Future<void> setShiftTimes(
+      String employeeId, String start, String end) async {
+    final url =
+        Uri.parse("$baseUrl/employee/$employeeId/shift?start=$start&end=$end");
+
+    final response = await http.put(url);
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to update shift times");
     }
   }
 }

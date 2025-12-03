@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:t_store/utils/employee_controller.dart';
-import 'package:t_store/features/authentication/screens/onboarding/onboardging.dart';
-import 'package:t_store/utils/navigation_menu.dart';
-import 'package:t_store/utils/theme/theme.dart';
-import 'package:t_store/features/authentication/screens/login/services/login_service.dart';
+import 'package:openarms/utils/employee_controller.dart';
+import 'package:openarms/features/authentication/screens/onboarding/onboardging.dart';
+import 'package:openarms/utils/navigation_menu.dart';
+import 'package:openarms/utils/theme/theme.dart';
+import 'package:openarms/features/authentication/screens/login/services/login_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
       empController.setIsFin(isFin);
       if (isAdmin && adminId != null) empController.setAdminId(adminId);
 
-      // 🔹 Try to fetch details from backend
+      //  Try to fetch details from backend
       try {
         final response = isAdmin
             ? await LoginService.getAdminDetails(empId)

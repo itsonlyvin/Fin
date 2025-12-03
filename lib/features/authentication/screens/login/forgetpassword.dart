@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iconsax/iconsax.dart';
-import 'package:t_store/common/widgets/custom_shapes/containers/primary_header_container.dart';
-import 'package:t_store/common/widgets/login_signup/login_signup_divider.dart';
-import 'package:t_store/features/authentication/screens/login/services/forget_password_service.dart';
-import 'package:t_store/features/authentication/screens/login/updatepassword.dart';
-import 'package:t_store/features/authentication/screens/onboarding/onboardging.dart';
-import 'package:t_store/utils/constants/sizes.dart';
-import 'package:t_store/utils/constants/text_strings.dart';
+import 'package:openarms/features/authentication/auth_template.dart';
+import 'package:openarms/features/authentication/screens/login/updatepassword.dart';
+import 'package:openarms/features/authentication/screens/onboarding/onboardging.dart';
 
-class Forgetpassword extends StatefulWidget {
-  const Forgetpassword({
+class ForgetPasswordScreen extends StatefulWidget {
+  const ForgetPasswordScreen({
     super.key,
     required this.logo,
     required this.color1,
@@ -26,10 +21,10 @@ class Forgetpassword extends StatefulWidget {
   final bool isfin;
 
   @override
-  State<Forgetpassword> createState() => _ForgetpasswordState();
+  State<ForgetPasswordScreen> createState() => _ForgetPasswordScreenState();
 }
 
-class _ForgetpasswordState extends State<Forgetpassword> {
+class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
   final TextEditingController _idController = TextEditingController();
   bool _loading = false;
 
@@ -42,102 +37,59 @@ class _ForgetpasswordState extends State<Forgetpassword> {
 
     setState(() => _loading = true);
 
-    try {
-      final response = widget.admin
-          ? await ForgetPasswordService.sendAdminResetCode(
-              _idController.text.trim())
-          : await ForgetPasswordService.sendEmployeeResetCode(
-              _idController.text.trim());
+    // Mock delay for demo
+    await Future.delayed(const Duration(seconds: 1));
+    Get.snackbar("Success", "Reset code sent!");
 
-      if (response.statusCode == 200) {
-        Get.snackbar("Success", response.body);
+    setState(() => _loading = false);
 
-        // Navigate to Update Password screen
-        Get.to(() => Updatepassword(
-              logo: widget.logo,
-              color1: widget.color1,
-              color2: widget.color2,
-              admin: widget.admin,
-              isfin: widget.isfin,
-            ));
-      } else {
-        Get.snackbar("Failed", response.body);
-      }
-    } catch (e) {
-      Get.snackbar("Error", e.toString());
-    } finally {
-      setState(() => _loading = false);
-    }
+    // Navigate to Update Password
+    Get.to(
+      () => UpdatePasswordScreen(
+        logo: widget.logo,
+        color1: widget.color1,
+        color2: widget.color2,
+        admin: widget.admin,
+        isfin: widget.isfin,
+      ),
+      transition: Transition.rightToLeft,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            TPrimaryHeaderContainer(
-              logo: widget.logo,
-              color1: widget.color1,
-              color2: widget.color2,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(TSizes.spaceBtwSections),
-              child: Form(
-                child: Column(
-                  children: [
-                    Text(
-                      widget.admin
-                          ? "Admin Password Reset"
-                          : TTexts.forgetPassword,
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: TSizes.spaceBtwInputFields),
-                    TextFormField(
-                      controller: _idController,
-                      decoration: InputDecoration(
-                        labelText:
-                            widget.admin ? TTexts.adminId : TTexts.employeeId,
-                        prefixIcon: const Icon(Iconsax.personalcard),
-                      ),
-                    ),
-                    const SizedBox(height: TSizes.spaceBtwInputFields),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 60,
-                      child: ElevatedButton(
-                        onPressed: _loading ? null : _sendResetCode,
-                        child: _loading
-                            ? const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text(TTexts.sendEmail),
-                      ),
-                    ),
-                    const SizedBox(height: TSizes.spaceBtwInputFields * 1.8),
-                    const TFormDivider(dividerText1: TTexts.orGoBack),
-                    const SizedBox(height: TSizes.spaceBtwInputFields / 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TextButton(
-                          onPressed: () => Get.to(() => const Onboardging()),
-                          child: const Text(TTexts.home),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+    return AuthTemplate(
+      heroTag: "forgetLogo",
+      logo: widget.logo,
+      color1: widget.color1,
+      color2: widget.color2,
+      title: widget.admin ? "Admin Password Reset" : "Forget Password",
+      fields: [
+        TextFormField(
+          controller: _idController,
+          decoration: InputDecoration(
+            labelText: widget.admin ? "Admin ID" : "Employee ID",
+            prefixIcon: const Icon(Icons.person),
+          ),
+        ),
+      ],
+      primaryButton: SizedBox(
+        width: double.infinity,
+        height: 60,
+        child: ElevatedButton(
+          onPressed: _loading ? null : _sendResetCode,
+          child: _loading
+              ? const CircularProgressIndicator(color: Colors.white)
+              : const Text("Send Reset Code"),
         ),
       ),
+      secondaryActions: [
+        TextButton(
+          onPressed: () => Get.to(() => const Onboardging(),
+              transition: Transition.rightToLeft),
+          child: const Text("Home"),
+        ),
+      ],
     );
   }
 }

@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:t_store/utils/appconfig.dart';
+import 'package:openarms/utils/appconfig.dart';
+import 'package:openarms/utils/constants/colors.dart';
+import 'package:openarms/utils/helpers/helper_functions.dart';
 
 class EmpIdPage extends StatefulWidget {
   const EmpIdPage({super.key});
@@ -179,7 +181,10 @@ class _EmpIdPageState extends State<EmpIdPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = THelperFunctions.isDarkMode(context);
     return Scaffold(
+      backgroundColor:
+          isDark ? const Color.fromARGB(255, 0, 0, 0) : TColors.white,
       appBar: AppBar(
         title: const Text("Employee IDs"),
       ),
