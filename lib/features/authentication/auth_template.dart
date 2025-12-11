@@ -30,7 +30,6 @@ class AuthTemplate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // FIX 1: Wrap body in GestureDetector to dismiss keyboard when tapping outside
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Column(
@@ -79,14 +78,12 @@ class AuthTemplate extends StatelessWidget {
                           const SizedBox(height: 24),
                         ],
 
-                        // Secondary Actions (Back / Signup / Home buttons)
                         if (secondaryActions.isNotEmpty)
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: secondaryActions,
                           ),
 
-                        // Extra bottom padding for scrolling when keyboard is open
                         const SizedBox(height: 20),
                       ],
                     ),

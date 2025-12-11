@@ -10,7 +10,6 @@ import 'package:openarms/features/app/screens/admin/home/backservice/daily_atten
 import 'package:openarms/features/app/screens/admin/home/backservice/employee_model.dart';
 import 'package:openarms/features/app/screens/admin/home/backservice/employeeservice.dart';
 import 'package:openarms/utils/constants/colors.dart';
-
 import 'package:openarms/utils/helpers/helper_functions.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -35,6 +34,9 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
   // Data State
   List<DailyAttendance> _attendanceList = [];
   bool _isLoading = false;
+
+  // Report Loading State
+  bool _isReportLoading = false;
 
   @override
   void initState() {
@@ -240,7 +242,8 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
               ),
               const SizedBox(height: 8),
               if (data.totalHours != null)
-                Text("Total: ${data.totalHours}",
+                Text(
+                    "Total: ${data.totalHours!.floor()}h ${((data.totalHours! - data.totalHours!.floor()) * 60).round()}m",
                     style: const TextStyle(color: Colors.grey, fontSize: 13)),
               if (data.adminRemarks != null && data.adminRemarks!.isNotEmpty)
                 Padding(
@@ -274,11 +277,22 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
         title: const Text("Attendance Record"),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.summarize_outlined),
-            tooltip: "Monthly Report",
-            onPressed: fetchReportAndShow,
-          ),
+          // UPDATED: Show loader if fetching report
+          if (_isReportLoading)
+            const Padding(
+              padding: EdgeInsets.only(right: 16.0),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.summarize_outlined),
+              tooltip: "Monthly Report",
+              onPressed: fetchReportAndShow,
+            ),
         ],
       ),
       body: RefreshIndicator(
@@ -293,9 +307,6 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   children: [
-                    // 1. Employee Header
-                    // _buildEmployeeHeaderCard(isDark),
-
                     // 2. Calendar Card
                     Card(
                       margin: const EdgeInsets.symmetric(
@@ -445,15 +456,23 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
     }
   }
 
-  void fetchReportAndShow() async {
+  // UPDATED: Added Loading State for Report Fetching
+  Future<void> fetchReportAndShow() async {
+    setState(() => _isReportLoading = true);
+
     try {
       final report = await employeeService.fetchMonthlyReport(
           employeeId, _focusedDay.year, _focusedDay.month);
+
+      if (!mounted) return;
       showReportBottomSheet(report);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to fetch report: $e")),
       );
+    } finally {
+      if (mounted) setState(() => _isReportLoading = false);
     }
   }
 
@@ -487,6 +506,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                   value: report.employeeName,
                   icon: Iconsax.user,
                   onPressed: () {},
+                  flex: 5,
                 ),
 
                 TProfileMenu(
@@ -494,6 +514,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                   value: "${report.month}/${report.year}",
                   icon: Iconsax.calendar,
                   onPressed: () {},
+                  flex: 5,
                 ),
 
                 const SizedBox(height: 8),
@@ -505,41 +526,55 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                   title: 'Total Days',
                   value: report.totalDays.toString(),
                   onPressed: () {},
+                  flex: 5,
                 ),
                 TProfileMenu(
                   title: 'Days Left',
                   value: report.daysLeft.toString(),
                   onPressed: () {},
+                  flex: 5,
                 ),
                 TProfileMenu(
                   title: 'Present',
                   value: report.presentDays.toString(),
                   icon: Iconsax.tick_circle,
                   onPressed: () {},
+                  flex: 5,
                 ),
                 TProfileMenu(
                   title: 'Half Days',
                   value: report.halfDays.toString(),
                   icon: Iconsax.timer_1,
                   onPressed: () {},
+                  flex: 5,
                 ),
                 TProfileMenu(
                   title: 'Absent',
                   value: report.absentDays.toString(),
                   icon: Iconsax.close_circle,
                   onPressed: () {},
+                  flex: 5,
+                ),
+                TProfileMenu(
+                  title: 'No Clock Out Days',
+                  value: report.noClockOutDays.toString(),
+                  icon: Iconsax.calendar_1,
+                  onPressed: () {},
+                  flex: 5,
                 ),
                 TProfileMenu(
                   title: 'Paid Leave',
                   value: (report.paidLeave - report.holidayCount).toString(),
                   icon: Iconsax.coin,
                   onPressed: () {},
+                  flex: 5,
                 ),
                 TProfileMenu(
                   title: 'Holidays',
                   value: report.holidayCount.toString(),
                   icon: Iconsax.calendar_1,
                   onPressed: () {},
+                  flex: 5,
                 ),
 
                 const SizedBox(height: 10),
@@ -552,18 +587,21 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                   value: report.totalHoursWorked.toStringAsFixed(2),
                   icon: Iconsax.clock,
                   onPressed: () {},
+                  flex: 5,
                 ),
                 TProfileMenu(
                   title: 'Overtime Hours',
                   value: report.totalOvertimeHours.toStringAsFixed(2),
                   icon: Iconsax.clock_1,
                   onPressed: () {},
+                  flex: 5,
                 ),
                 TProfileMenu(
                   title: 'Overtime Pay',
                   value: "₹${report.overtimePay.toStringAsFixed(2)}",
                   icon: Iconsax.money,
                   onPressed: () {},
+                  flex: 5,
                 ),
 
                 const SizedBox(height: 10),
@@ -576,12 +614,14 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                   value: "₹${report.salaryEarned.toStringAsFixed(2)}",
                   icon: Iconsax.wallet,
                   onPressed: () {},
+                  flex: 5,
                 ),
                 TProfileMenu(
                   title: 'Bonus Earned',
                   value: "₹${report.bonusEarned.toStringAsFixed(2)}",
                   icon: Iconsax.gift,
                   onPressed: () {},
+                  flex: 5,
                 ),
 
                 const SizedBox(height: 16),
@@ -696,20 +736,39 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                     const SizedBox(height: TSizes.spaceBtwItems),
                     Text("Current Status: ${day.status}"),
                     if (day.totalHours != null)
-                      Text("Total Hours: ${day.totalHours}"),
+                      Text(
+                        "Total Hours: ${day.totalHours!.floor()}h ${((day.totalHours! - day.totalHours!.floor()) * 60).round()}m",
+                      ),
 
                     const SizedBox(height: TSizes.spaceBtwItems),
                     // CLOCK IN/OUT
-                    (day.clockIn != null)
-                        ? Text("Clock In : ${day.clockIn}")
-                        : const Text("Clock In : No Data"),
-                    (day.clockOut != null)
-                        ? Text("Clock Out : ${day.clockOut}")
-                        : const Text("Clock Out : No Data"),
+                    Row(
+                      children: [
+                        Text("Clock In : "),
+                        const SizedBox(width: 4),
+                        Text(
+                          day.clockIn != null
+                              ? DateFormat('hh:mm a').format(day.clockIn!)
+                              : "--:--",
+                        ),
+                        //const SizedBox(width: 20),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text("Clock Out : "),
+                        const SizedBox(width: 4),
+                        Text(
+                          day.clockOut != null
+                              ? DateFormat('hh:mm a').format(day.clockOut!)
+                              : "--:--",
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: TSizes.spaceBtwItems),
 
                     (day.overtimeEnabled == false)
-                        ? Text("Over Time : No")
+                        ? const Text("Over Time : No")
                         : const Text("Over Time : Yes"),
 
                     (day.adminRemarks != null)
@@ -728,7 +787,8 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                                 EdgeInsets.only(right: TSizes.defaultSpace),
                             child: Text("Close"),
                           ),
-                          onPressed: () {}),
+                          // UPDATED: Added navigation pop
+                          onPressed: () => Navigator.pop(context)),
                     ),
                   ],
                 ),

@@ -30,7 +30,6 @@ class _HomePageState extends State<HomePage> {
   String totalHours = "00:00";
   String adminRemarks = "";
 
-  // CHANGE 1: Set this to true initially so the page starts in loading state
   bool isLoading = true;
 
   // Counter
@@ -81,10 +80,13 @@ class _HomePageState extends State<HomePage> {
     await _requestPermissions();
     String? scannedCode;
 
+    if (!mounted) return null;
+
     await showDialog(
       context: context,
       builder: (context) {
         return Scaffold(
+          backgroundColor: Colors.transparent,
           body: Stack(
             children: [
               MobileScanner(
@@ -125,6 +127,7 @@ class _HomePageState extends State<HomePage> {
 
   /// Show error dialog
   void _showErrorDialog(String message) {
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -144,6 +147,12 @@ class _HomePageState extends State<HomePage> {
   Future<void> _fetchDailyAttendance() async {
     try {
       if (!mounted) return;
+
+      // Ensure empId is available before making request
+      if (empController.empId.value.isEmpty) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (!mounted) return;
+      }
 
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
       final url = Uri.parse(
@@ -177,12 +186,12 @@ class _HomePageState extends State<HomePage> {
           });
         }
       } else {
-        throw Exception("Failed to fetch daily attendance");
+        // If 404 or other error, mostly likely no attendance record yet
+        // throw Exception("Failed to fetch daily attendance");
       }
     } catch (e) {
-      // Handle error quietly or show toast
+      debugPrint("Error fetching attendance: $e");
     } finally {
-      // CHANGE 2: Turn off loading state here to reveal the UI
       if (mounted) setState(() => isLoading = false);
     }
   }
@@ -210,12 +219,13 @@ class _HomePageState extends State<HomePage> {
   /// Mark IN/OUT attendance
   Future<void> _markAttendance(bool isIn) async {
     try {
-      // For marking attendance, we might want to show a different loader
-      // or keep the existing one. For now, we use the same flag.
       setState(() => isLoading = true);
 
       String? qrCode = await _scanQr();
-      if (qrCode == null) throw Exception("No QR code scanned");
+      if (qrCode == null) {
+        setState(() => isLoading = false);
+        return;
+      }
 
       Position position = await _getLocation();
 
@@ -265,245 +275,273 @@ class _HomePageState extends State<HomePage> {
     final now = DateTime.now();
     final formattedTime = DateFormat('hh:mm a').format(now);
     final formattedDate = DateFormat('EEEE, d MMMM y').format(now);
-    final empController = Get.find<EmployeeController>();
 
     final bgColor =
         dark ? const Color.fromARGB(255, 0, 0, 0) : const Color(0xFFF5F5F5);
     final cardColor = dark ? const Color(0xFF2C2C2C) : Colors.white;
     final screenHeight = MediaQuery.of(context).size.height;
-    final details = empController.details;
-    final empId = empController.empId.value;
 
-    final employee = Employee.fromJson({...details, "employeeId": empId});
+    // FIX: Wrapped in Obx to listen for controller updates
+    return Obx(() {
+      final details = empController.details;
+      final empId = empController.empId.value;
 
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: false,
-        automaticallyImplyLeading: false,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Hello, ${employee.fullName}",
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            Text(
-              "Let's get to work!",
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
+      // CRITICAL FIX: If details are missing, show loading instead of crashing
+      if (details.isEmpty || empId.isEmpty) {
+        return Scaffold(
+          backgroundColor: bgColor,
+          body: const Center(child: CircularProgressIndicator()),
+        );
+      }
+
+      // Safe Parsing
+      Employee employee;
+      try {
+        employee = Employee.fromJson({...details, "employeeId": empId});
+      } catch (e) {
+        // Fallback if parsing fails
+        employee = Employee(
+          employeeId: empId,
+          fullName: "Employee",
+          phoneNumber: "",
+          companyEmail: "",
+          emailVerified: false,
+          salary: 0,
+          bonus: 0,
+        );
+      }
+
+      return Scaffold(
+        backgroundColor: bgColor,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: false,
+          automaticallyImplyLeading: false,
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Hello, ${employee.fullName.isNotEmpty ? "${employee.fullName[0].toUpperCase()}${employee.fullName.substring(1)}" : "User"}",
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              Text(
+                "Let's get to work!",
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
         ),
-      ),
-      // CHANGE 3: Logic to switch between Loader and Content
-      body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator()) // Full screen loader
-          : RefreshIndicator(
-              onRefresh: _fetchDailyAttendance,
-              color: Colors.white,
-              backgroundColor: const Color.fromARGB(255, 29, 80, 129),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: TSizes.defaultSpace),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: TSizes.spaceBtwSections),
+        body: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : RefreshIndicator(
+                onRefresh: _fetchDailyAttendance,
+                color: Colors.white,
+                backgroundColor: const Color.fromARGB(255, 29, 80, 129),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: TSizes.defaultSpace),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: TSizes.spaceBtwSections),
 
-                      SizedBox(
-                        height: screenHeight * 0.30,
-                        width: double.infinity,
-                        child: Container(
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                Color.fromARGB(255, 29, 80, 129),
-                                Color.fromARGB(255, 206, 130, 220)
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(5.0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: dark ? Colors.black : Colors.white,
+                        // --- 1. SHIFT TIMER ---
+                        SizedBox(
+                          height: screenHeight * 0.30,
+                          width: double.infinity,
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  Color.fromARGB(255, 29, 80, 129),
+                                  Color.fromARGB(255, 206, 130, 220)
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "Current Shift",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelMedium
-                                        ?.copyWith(
-                                          color: Colors.grey,
-                                        ),
-                                  ),
-                                  const SizedBox(height: TSizes.sm),
-                                  Text(
-                                    elapsedTime,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .displayMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          fontFamily: 'Monospace',
-                                          color: dark
-                                              ? Colors.white
-                                              : Colors.black87,
-                                        ),
-                                  ),
-                                  const SizedBox(height: TSizes.xs),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: _clockInTime != null
-                                          ? Colors.green.withOpacity(0.1)
-                                          : Colors.grey.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Text(
-                                      _clockInTime != null
-                                          ? "ACTIVE"
-                                          : "INACTIVE",
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(5.0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: dark ? Colors.black : Colors.white,
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "Current Shift",
                                       style: Theme.of(context)
                                           .textTheme
-                                          .labelSmall
+                                          .labelMedium
                                           ?.copyWith(
-                                            color: _clockInTime != null
-                                                ? Colors.green
-                                                : Colors.grey,
-                                            fontWeight: FontWeight.bold,
-                                            letterSpacing: 1.0,
+                                            color: Colors.grey,
                                           ),
                                     ),
+                                    const SizedBox(height: TSizes.sm),
+                                    Text(
+                                      elapsedTime,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .displayMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                            fontFamily: 'Monospace',
+                                            color: dark
+                                                ? Colors.white
+                                                : Colors.black87,
+                                          ),
+                                    ),
+                                    const SizedBox(height: TSizes.xs),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: _clockInTime != null
+                                            ? Colors.green.withOpacity(0.1)
+                                            : Colors.grey.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        _clockInTime != null
+                                            ? "ACTIVE"
+                                            : "INACTIVE",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelSmall
+                                            ?.copyWith(
+                                              color: _clockInTime != null
+                                                  ? Colors.green
+                                                  : Colors.grey,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 1.0,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: TSizes.spaceBtwSections),
+
+                        // --- 2. DATE DISPLAY ---
+                        Text(
+                          formattedDate.toUpperCase(),
+                          style:
+                              Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    letterSpacing: 1.2,
+                                    color: Colors.grey,
                                   ),
-                                ],
+                        ),
+                        Text(
+                          formattedTime,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
-                            ),
+                        ),
+
+                        const SizedBox(height: TSizes.spaceBtwSections),
+
+                        // --- 3. STATS GRID ---
+                        Container(
+                          padding: const EdgeInsets.all(TSizes.md),
+                          decoration: BoxDecoration(
+                            color: cardColor,
+                            borderRadius:
+                                BorderRadius.circular(TSizes.cardRadiusLg),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _buildStatItem(context, "Clock In", inTime,
+                                  Iconsax.login, Colors.green),
+                              Container(
+                                  width: 1,
+                                  height: 40,
+                                  color: Colors.grey.withOpacity(0.3)),
+                              _buildStatItem(context, "Clock Out", outTime,
+                                  Iconsax.logout, Colors.orange),
+                              Container(
+                                  width: 1,
+                                  height: 40,
+                                  color: Colors.grey.withOpacity(0.3)),
+                              _buildStatItem(context, "Total Hrs", totalHours,
+                                  Iconsax.timer_1, Colors.blue),
+                            ],
                           ),
                         ),
-                      ),
 
-                      const SizedBox(height: TSizes.spaceBtwSections),
+                        const SizedBox(height: TSizes.spaceBtwSections),
 
-                      // --- 2. DATE DISPLAY ---
-                      Text(
-                        formattedDate.toUpperCase(),
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              letterSpacing: 1.2,
-                              color: Colors.grey,
-                            ),
-                      ),
-                      Text(
-                        formattedTime,
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                      ),
-
-                      const SizedBox(height: TSizes.spaceBtwSections),
-
-                      // --- 3. STATS GRID ---
-                      Container(
-                        padding: const EdgeInsets.all(TSizes.md),
-                        decoration: BoxDecoration(
-                          color: cardColor,
-                          borderRadius:
-                              BorderRadius.circular(TSizes.cardRadiusLg),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        // --- 4. ACTION SLIDE/BUTTONS ---
+                        Row(
                           children: [
-                            _buildStatItem(context, "Clock In", inTime,
-                                Iconsax.login, Colors.green),
-                            Container(
-                                width: 1,
-                                height: 40,
-                                color: Colors.grey.withOpacity(0.3)),
-                            _buildStatItem(context, "Clock Out", outTime,
-                                Iconsax.logout, Colors.orange),
-                            Container(
-                                width: 1,
-                                height: 40,
-                                color: Colors.grey.withOpacity(0.3)),
-                            _buildStatItem(context, "Total Hrs", totalHours,
-                                Iconsax.timer_1, Colors.blue),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () => _markAttendance(true),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 29, 80, 129),
+                                  foregroundColor: Colors.white,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 18),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 5,
+                                ),
+                                icon: const Icon(Iconsax.scan_barcode),
+                                label: const Text("CLOCK IN"),
+                              ),
+                            ),
+                            const SizedBox(width: TSizes.md),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () => _markAttendance(false),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 206, 130, 220),
+                                  foregroundColor: Colors.white,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 18),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 5,
+                                ),
+                                icon: const Icon(Iconsax.logout_1),
+                                label: const Text("CLOCK OUT"),
+                              ),
+                            ),
                           ],
                         ),
-                      ),
-
-                      const SizedBox(height: TSizes.spaceBtwSections),
-
-                      // --- 4. ACTION SLIDE/BUTTONS ---
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () => _markAttendance(true),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 29, 80, 129),
-                                foregroundColor: Colors.white,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 18),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                elevation: 5,
-                              ),
-                              icon: const Icon(Iconsax.scan_barcode),
-                              label: const Text("CLOCK IN"),
-                            ),
-                          ),
-                          const SizedBox(width: TSizes.md),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () => _markAttendance(false),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 206, 130, 220),
-                                foregroundColor: Colors.white,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 18),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                elevation: 5,
-                              ),
-                              icon: const Icon(Iconsax.logout_1),
-                              label: const Text("CLOCK OUT"),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: TSizes.defaultSpace),
-                    ],
+                        const SizedBox(height: TSizes.defaultSpace),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-    );
+      );
+    });
   }
 
   // Helper widget for the Stats Grid

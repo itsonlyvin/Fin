@@ -14,7 +14,7 @@ class AdminHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = THelperFunctions.isDarkMode(context);
-    // final controller = Get.find<AdminPageController>();
+
     final empController = Get.find<EmployeeController>();
 
     return Scaffold(
@@ -36,7 +36,7 @@ class AdminHome extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Welcome 👋 ${empController.adminId.value}",
+                        "Welcome ${empController.adminId.value}",
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       //  const Icon(Iconsax.notification, size: 28),

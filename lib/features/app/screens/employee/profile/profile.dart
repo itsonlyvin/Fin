@@ -63,7 +63,10 @@ class ProfileScreen extends StatelessWidget {
                 ///  Name
                 TProfileMenu(
                   title: 'Name',
-                  value: employee.fullName,
+                  // FIX APPLIED HERE: check isNotEmpty before accessing index 0
+                  value: employee.fullName.isNotEmpty
+                      ? "${employee.fullName[0].toUpperCase()}${employee.fullName.substring(1)}"
+                      : "",
                   onPressed: () {},
                 ),
 
@@ -101,6 +104,7 @@ class ProfileScreen extends StatelessWidget {
                   title: 'Bonus',
                   value: "₹${employee.bonus.toStringAsFixed(2)}",
                   onPressed: () {},
+                  //  icon:
                 ),
 
                 const SizedBox(height: TSizes.spaceBtwSections),

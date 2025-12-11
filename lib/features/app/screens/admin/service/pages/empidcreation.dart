@@ -96,7 +96,7 @@ class _EmpIdPageState extends State<EmpIdPage> {
     }
   }
 
-  // Delete employee ID
+  // Delete employee ID (Whitelist)
   Future<void> deleteEmployeeId(String empId) async {
     final url = Uri.parse("${AppConfig.baseUrl}/employee-ids/$empId");
     try {
@@ -117,13 +117,34 @@ class _EmpIdPageState extends State<EmpIdPage> {
     }
   }
 
-  // Confirm before deleting
+  // NEW SERVICE: Delete full Employee Profile (from 'employees' table)
+  Future<void> deleteEmployeeProfile(String empId) async {
+    final url = Uri.parse("${AppConfig.baseUrl}/employee/$empId");
+    try {
+      final response = await http.delete(url);
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text("Employee profile deleted successfully")));
+        // Refresh list to reflect potential status changes
+        fetchAllEmployees();
+      } else {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(response.body)));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Error: $e")));
+    }
+  }
+
+  // Confirm before deleting Employee ID
   Future<void> confirmAndDeleteEmployeeId(String empId) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Confirm Delete"),
-        content: Text("Are you sure you want to delete Employee ID: $empId?"),
+        title: const Text("Delete Whitelist ID"),
+        content: Text(
+            "This deletes the ID '$empId' from the allowed list.\nAre you sure?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -132,7 +153,7 @@ class _EmpIdPageState extends State<EmpIdPage> {
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text(
-              "Delete",
+              "Delete ID",
               style: TextStyle(color: Colors.red),
             ),
           ),
@@ -145,7 +166,36 @@ class _EmpIdPageState extends State<EmpIdPage> {
     }
   }
 
-  // Get full Employee details (only Employee ID, Name, Phone, Email)
+  // NEW CONFIRMATION: Confirm before deleting Full Profile
+  Future<void> confirmAndDeleteProfile(String empId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Full Profile"),
+        content: Text(
+            "This deletes the full registered profile for '$empId' (Name, Email, etc).\nThis action cannot be undone."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              "Delete Profile",
+              style: TextStyle(color: Colors.deepOrange),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      deleteEmployeeProfile(empId);
+    }
+  }
+
+  // Get full Employee details
   Future<void> getEmployeeDetailsByMainService(String emp) async {
     final url = Uri.parse("${AppConfig.baseUrl}/employee/$emp");
     try {
@@ -249,6 +299,8 @@ class _EmpIdPageState extends State<EmpIdPage> {
                                       ? Colors.green
                                       : Colors.red),
                             ),
+                            subtitleTextStyle:
+                                Theme.of(context).textTheme.labelSmall,
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -258,18 +310,29 @@ class _EmpIdPageState extends State<EmpIdPage> {
                                   onChanged: (val) => updateRegisteredStatus(
                                       emp['employeeId'], val),
                                 ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete,
-                                      color: Color.fromARGB(255, 209, 56, 46)),
-                                  onPressed: () => confirmAndDeleteEmployeeId(
-                                      emp['employeeId']),
-                                ),
+                                // Button: Get Details
                                 IconButton(
                                   icon: const Icon(Icons.person),
                                   tooltip: "Get full Employee details",
                                   onPressed: () =>
                                       getEmployeeDetailsByMainService(
                                           emp['employeeId']),
+                                ),
+                                // Button: Delete Full Profile (New Service)
+                                IconButton(
+                                  icon: const Icon(Icons.person_remove,
+                                      color: Color.fromARGB(255, 209, 56, 46)),
+                                  tooltip: "Delete Full Employee Profile",
+                                  onPressed: () => confirmAndDeleteProfile(
+                                      emp['employeeId']),
+                                ),
+                                // Button: Delete ID (Whitelist)
+                                IconButton(
+                                  icon: const Icon(Icons.delete,
+                                      color: Color.fromARGB(255, 209, 56, 46)),
+                                  tooltip: "Delete ID from Whitelist",
+                                  onPressed: () => confirmAndDeleteEmployeeId(
+                                      emp['employeeId']),
                                 ),
                               ],
                             ),

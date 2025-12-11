@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:openarms/features/app/screens/employee/profile/widgets/profile.dart';
+import 'package:openarms/utils/constants/sizes.dart';
+import 'package:openarms/utils/employee_controller.dart';
 import 'package:openarms/features/app/screens/admin/home/backservice/attendance_report.dart';
 import 'package:openarms/features/app/screens/admin/home/backservice/daily_attendance.dart';
 import 'package:openarms/features/app/screens/admin/home/backservice/employee_model.dart';
 import 'package:openarms/features/app/screens/admin/home/backservice/employeeservice.dart';
-import 'package:openarms/features/app/screens/employee/profile/widgets/profile.dart';
 import 'package:openarms/utils/constants/colors.dart';
-import 'package:openarms/utils/constants/sizes.dart';
 import 'package:openarms/utils/helpers/helper_functions.dart';
-import 'package:table_calendar/table_calendar.dart'; // Ensure this is added to pubspec.yaml
+import 'package:table_calendar/table_calendar.dart';
 
 class EmployeeInfo extends StatefulWidget {
-  final String employeeId;
-  final String employeeName;
+  final String? employeeId;
+  final String? employeeName;
 
-  const EmployeeInfo({
-    super.key,
-    required this.employeeId,
-    required this.employeeName,
-  });
+  const EmployeeInfo({super.key, this.employeeId, this.employeeName});
 
   @override
   State<EmployeeInfo> createState() => _EmployeeInfoState();
@@ -27,6 +25,7 @@ class EmployeeInfo extends StatefulWidget {
 
 class _EmployeeInfoState extends State<EmployeeInfo> {
   final EmployeeService employeeService = EmployeeService();
+  late final String employeeId;
 
   // Calendar State
   DateTime _focusedDay = DateTime.now();
@@ -36,63 +35,21 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
   List<DailyAttendance> _attendanceList = [];
   bool _isLoading = false;
 
+  // Report Loading State
+  bool _isReportLoading = false;
+
   @override
   void initState() {
     super.initState();
+
+    // Use employeeId from widget or from controller
+    final empController = Get.find<EmployeeController>();
+    employeeId = widget.employeeId ?? empController.empId.value;
+
     _fetchAttendanceForMonth(_focusedDay);
   }
 
-  /// Fetch attendance based on the focused month in the calendar
-  Future<void> _fetchAttendanceForMonth(DateTime date) async {
-    setState(() => _isLoading = true);
-    try {
-      final data = await employeeService.fetchMonthlyAttendance(
-        widget.employeeId,
-        date.year,
-        date.month,
-      );
-      setState(() {
-        _attendanceList = data;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Error: $e")));
-      }
-    }
-  }
-
-  /// Find the attendance object for a specific DateTime
-  DailyAttendance? _getAttendanceForDay(DateTime day) {
-    // API usually returns days for the requested month.
-    // We match based on day, month, and year.
-    try {
-      return _attendanceList.firstWhere(
-        (att) => isSameDay(att.date, day),
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Color getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case "present":
-        return TColors
-            .success; // Updated to match your reference style likely using Green
-      case "absent":
-        return TColors.error;
-      case "half-day":
-        return TColors.warning;
-      case "holiday":
-        return TColors.primary;
-      default:
-        return Colors.grey;
-    }
-  }
-
+  /// Helper for time validation
   int _timeToMinutes(String time) {
     try {
       final parts = time.split(':');
@@ -105,15 +62,67 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
     }
   }
 
-  // ------------------- UI COMPONENTS -------------------
+  /// Fetch data. If [isRefresh] is true, we don't show the full-screen loader.
+  Future<void> _fetchAttendanceForMonth(DateTime date,
+      {bool isRefresh = false}) async {
+    if (!isRefresh) {
+      setState(() => _isLoading = true);
+    }
 
-  /// Builds the top card with Employee Info (styled like your Section project)
+    try {
+      final data = await employeeService.fetchMonthlyAttendance(
+        employeeId,
+        date.year,
+        date.month,
+      );
+      setState(() {
+        _attendanceList = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error fetching data: $e")),
+        );
+      }
+    }
+  }
+
+  /// Helper to find attendance data for a specific day
+  DailyAttendance? _getAttendanceForDay(DateTime day) {
+    try {
+      return _attendanceList.firstWhere(
+        (att) => isSameDay(att.date, day),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Color getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case "present":
+        return TColors.success; // Green
+      case "absent":
+        return TColors.error; // Red
+      case "half-day":
+        return TColors.warning; // Orange
+      case "holiday":
+        return TColors.primary; // Brand color
+      default:
+        return Colors.grey;
+    }
+  }
+
+  // ------------------- UI BUILDERS -------------------
+
   Widget _buildEmployeeHeaderCard(bool isDark) {
     return Card(
-      margin: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       elevation: 5,
-      color: isDark ? TColors.dark : TColors.light,
+      color: isDark ? const Color.fromARGB(255, 0, 0, 0) : TColors.light,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
@@ -129,7 +138,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.employeeName,
+                    widget.employeeName ?? "Employee",
                     style: Theme.of(context)
                         .textTheme
                         .titleLarge
@@ -137,7 +146,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "ID: ${widget.employeeId}",
+                    "ID: $employeeId",
                     style: Theme.of(context)
                         .textTheme
                         .bodyMedium
@@ -149,24 +158,29 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
             IconButton(
               icon: const Icon(Icons.edit_note, color: TColors.primary),
               onPressed: fetchEmployeeAndShowDetails,
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
-  /// Builds the detailed card for the SELECTED day
   Widget _buildSelectedDayDetail(bool isDark) {
     final DailyAttendance? data = _getAttendanceForDay(_selectedDay);
 
     if (data == null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Text(
-            "No data available for ${DateFormat.yMMMMd().format(_selectedDay)}",
-            style: const TextStyle(color: Colors.grey),
+          padding: const EdgeInsets.all(30.0),
+          child: Column(
+            children: [
+              const Icon(Icons.info_outline, color: Colors.grey, size: 40),
+              const SizedBox(height: 10),
+              Text(
+                "No data for ${DateFormat.yMMMMd().format(_selectedDay)}",
+                style: const TextStyle(color: Colors.grey),
+              ),
+            ],
           ),
         ),
       );
@@ -191,7 +205,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
-        onTap: () => showDayDetails(data), // Opens the edit modal
+        onTap: () => showDayDetails(data),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -239,22 +253,22 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                   ),
                 ],
               ),
-              //const SizedBox(height: 8),
-              // if (data.totalHours != null)
-              //   Text(
-              //       "Total: ${data.totalHours} hrs | OT: ${data.overtimeHours ?? 0} hrs",
-              //       style: const TextStyle(color: Colors.grey, fontSize: 13)),
-              // if (data.adminRemarks != null && data.adminRemarks!.isNotEmpty)
-              //   Padding(
-              //     padding: const EdgeInsets.only(top: 4.0),
-              //     child: Text(
-              //       "Note: ${data.adminRemarks}",
-              //       style: const TextStyle(
-              //           color: TColors.primary,
-              //           fontStyle: FontStyle.italic,
-              //           fontSize: 12),
-              //     ),
-              //   ),
+              const SizedBox(height: 8),
+              if (data.totalHours != null)
+                Text(
+                    "Total: ${data.totalHours!.floor()}h ${((data.totalHours! - data.totalHours!.floor()) * 60).round()}m",
+                    style: const TextStyle(color: Colors.grey, fontSize: 13)),
+              if (data.adminRemarks != null && data.adminRemarks!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    "Note: ${data.adminRemarks}",
+                    style: const TextStyle(
+                        color: TColors.primary,
+                        fontStyle: FontStyle.italic,
+                        fontSize: 12),
+                  ),
+                ),
             ],
           ),
         ),
@@ -268,203 +282,214 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
     final isDark = THelperFunctions.isDarkMode(context);
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color.fromARGB(255, 0, 0, 0) : TColors.white,
+      backgroundColor: isDark
+          ? const Color.fromARGB(255, 0, 0, 0)
+          : const Color.fromARGB(255, 255, 255, 255)
+              .withAlpha((255 * 0.1).toInt()),
       appBar: AppBar(
         title: const Text("Attendance Record"),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.summarize_outlined),
-            tooltip: "Monthly Report",
-            onPressed: fetchReportAndShow,
-          ),
+          // Show loader if fetching report
+          if (_isReportLoading)
+            const Padding(
+              padding: EdgeInsets.only(right: 16.0),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.summarize_outlined),
+              tooltip: "Monthly Report",
+              onPressed: fetchReportAndShow,
+            ),
         ],
       ),
-      body: Column(
-        children: [
-          // 1. Employee Header
-          _buildEmployeeHeaderCard(isDark),
-
-          // 2. Calendar Card
-          Card(
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            elevation: 5,
-            color: isDark ? TColors.dark : TColors.light,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TableCalendar(
-                focusedDay: _focusedDay,
-                firstDay: DateTime(2020),
-                lastDay: DateTime(2030),
-                calendarFormat: CalendarFormat.month,
-                headerStyle: const HeaderStyle(
-                  formatButtonVisible: false,
-                  titleCentered: true,
-                  titleTextStyle:
-                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                onDaySelected: (selectedDay, focusedDay) {
-                  setState(() {
-                    _selectedDay = selectedDay;
-                    _focusedDay = focusedDay;
-                  });
-                },
-                onPageChanged: (focusedDay) {
-                  setState(() => _focusedDay = focusedDay);
-                  _fetchAttendanceForMonth(focusedDay);
-                },
-                // We update the calendar style to remove default decorations
-                // so our builders have full control
-                calendarStyle: const CalendarStyle(
-                  outsideDaysVisible: false,
-                ),
-                calendarBuilders: CalendarBuilders(
-                  // 1. DEFAULT BUILDER: Controls days that are not today and not selected
-                  defaultBuilder: (context, day, focusedDay) {
-                    final att = _getAttendanceForDay(day);
-                    if (att != null) {
-                      return Center(
-                        child: Text(
-                          '${day.day}',
-                          style: TextStyle(
-                            color:
-                                getStatusColor(att.status), // Text is colored
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await _fetchAttendanceForMonth(_focusedDay, isRefresh: true);
+        },
+        color: TColors.white,
+        backgroundColor: TColors.primary,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  children: [
+                    // Calendar Card
+                    Card(
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
+                      elevation: 5,
+                      color: isDark ? TColors.dark : TColors.light,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TableCalendar(
+                          focusedDay: _focusedDay,
+                          firstDay: DateTime(2020),
+                          lastDay: DateTime(2030),
+                          calendarFormat: CalendarFormat.month,
+                          headerStyle: const HeaderStyle(
+                            formatButtonVisible: false,
+                            titleCentered: true,
+                            titleTextStyle: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
                           ),
-                        ),
-                      );
-                    }
-                    return null; // Use default style if no data
-                  },
-
-                  // 2. TODAY BUILDER: Controls the "Current Day" look
-                  todayBuilder: (context, day, focusedDay) {
-                    final att = _getAttendanceForDay(day);
-                    Color textColor = TColors.primary; // Default today color
-
-                    if (att != null) {
-                      textColor = getStatusColor(att.status);
-                    }
-
-                    return Center(
-                      child: Container(
-                        // Optional: Add a subtle background to indicate it is "Today"
-                        decoration: BoxDecoration(
-                          color: textColor.withOpacity(0.15),
-                          shape: BoxShape.circle,
-                        ),
-                        width: 35,
-                        height: 35,
-                        alignment: Alignment.center,
-                        child: Text(
-                          '${day.day}',
-                          style: TextStyle(
-                            color: textColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                          selectedDayPredicate: (day) =>
+                              isSameDay(_selectedDay, day),
+                          onDaySelected: (selectedDay, focusedDay) {
+                            setState(() {
+                              _selectedDay = selectedDay;
+                              _focusedDay = focusedDay;
+                            });
+                          },
+                          onPageChanged: (focusedDay) {
+                            setState(() => _focusedDay = focusedDay);
+                            _fetchAttendanceForMonth(focusedDay);
+                          },
+                          calendarStyle: const CalendarStyle(
+                            outsideDaysVisible: false,
+                          ),
+                          calendarBuilders: CalendarBuilders(
+                            // 1. Default day text color based on status
+                            defaultBuilder: (context, day, focusedDay) {
+                              final att = _getAttendanceForDay(day);
+                              if (att != null) {
+                                return Center(
+                                  child: Text(
+                                    '${day.day}',
+                                    style: TextStyle(
+                                      color: getStatusColor(att.status),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                );
+                              }
+                              return null;
+                            },
+                            // 2. Today Builder
+                            todayBuilder: (context, day, focusedDay) {
+                              final att = _getAttendanceForDay(day);
+                              Color textColor = TColors.primary;
+                              if (att != null) {
+                                textColor = getStatusColor(att.status);
+                              }
+                              return Center(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: textColor.withOpacity(0.15),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  width: 35,
+                                  height: 35,
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    '${day.day}',
+                                    style: TextStyle(
+                                      color: textColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                            // 3. Selected Builder
+                            selectedBuilder: (context, day, focusedDay) {
+                              return Center(
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    color: TColors.primary,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  width: 35,
+                                  height: 35,
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    '${day.day}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                            // Remove dots
+                            markerBuilder: (context, day, events) => null,
                           ),
                         ),
                       ),
-                    );
-                  },
-
-                  // 3. SELECTED BUILDER: Controls the day clicked by the user
-                  selectedBuilder: (context, day, focusedDay) {
-                    final att = _getAttendanceForDay(day);
-
-                    return Center(
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          color: TColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        width: 35,
-                        height: 35,
-                        alignment: Alignment.center,
-                        child: Text(
-                          '${day.day}',
-                          style: const TextStyle(
-                            color: Colors.white, // White text on selected
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-
-                  // Remove markers (dots) entirely
-                  markerBuilder: (context, day, events) => null,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-
-          // 3. Selected Day Details Title
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Details for ${_selectedDay.day}/${_selectedDay.month}",
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-            ),
-          ),
-
-          // 4. Loading or Data
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        _buildSelectedDayDetail(isDark),
-                        const SizedBox(height: 20), // Bottom padding
-                      ],
                     ),
-                  ),
-          ),
-        ],
+
+                    const SizedBox(height: 20),
+
+                    // Detail Section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Details for ${_selectedDay.day}/${_selectedDay.month}",
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                      ),
+                    ),
+
+                    _buildSelectedDayDetail(isDark),
+
+                    const SizedBox(height: 40), // Bottom padding
+                  ],
+                ),
+              ),
       ),
     );
   }
 
-  // ------------------- LOGIC METHODS (Kept mostly same) -------------------
+  // ------------------- LOGIC & MODALS -------------------
 
+  // UPDATED: Editable Employee Details Modal
   void fetchEmployeeAndShowDetails() async {
     try {
-      final employee =
-          await employeeService.fetchEmployeeById(widget.employeeId);
+      final employee = await employeeService.fetchEmployeeById(employeeId);
       showEmployeeDetails(employee);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to fetch employee details: $e")));
+        SnackBar(content: Text("Failed to fetch employee details: $e")),
+      );
     }
   }
 
-  void fetchReportAndShow() async {
-    // Uses the focused month on the calendar
+  // UPDATED: Report Fetching with Loading State
+  Future<void> fetchReportAndShow() async {
+    setState(() => _isReportLoading = true);
+
     try {
       final report = await employeeService.fetchMonthlyReport(
-          widget.employeeId, _focusedDay.year, _focusedDay.month);
+          employeeId, _focusedDay.year, _focusedDay.month);
+
+      if (!mounted) return;
       showReportBottomSheet(report);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Failed to fetch report: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to fetch report: $e")),
+      );
+    } finally {
+      if (mounted) setState(() => _isReportLoading = false);
     }
   }
 
-  // ... (Keep existing showReportBottomSheet code exactly as is) ...
   void showReportBottomSheet(AttendanceReport report) {
     showModalBottomSheet(
       context: context,
@@ -490,108 +515,103 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                 ),
                 const SizedBox(height: 8),
                 const Divider(),
-                const SizedBox(height: 8),
                 TProfileMenu(
                   title: 'Employee',
                   value: report.employeeName,
                   icon: Iconsax.user,
                   onPressed: () {},
+                  flex: 5,
                 ),
-
                 TProfileMenu(
                   title: 'Month',
                   value: "${report.month}/${report.year}",
                   icon: Iconsax.calendar,
                   onPressed: () {},
+                  flex: 5,
                 ),
-
                 const SizedBox(height: 8),
                 const Divider(),
                 const SizedBox(height: 8),
 
-// Attendance
+                // Attendance Stats
                 TProfileMenu(
-                  title: 'Total Days',
-                  value: report.totalDays.toString(),
-                  onPressed: () {},
-                ),
+                    title: 'Total Days',
+                    value: report.totalDays.toString(),
+                    onPressed: () {},
+                    flex: 5),
                 TProfileMenu(
-                  title: 'Days Left',
-                  value: report.daysLeft.toString(),
-                  onPressed: () {},
-                ),
+                    title: 'Present',
+                    value: report.presentDays.toString(),
+                    icon: Iconsax.tick_circle,
+                    onPressed: () {},
+                    flex: 5),
                 TProfileMenu(
-                  title: 'Present',
-                  value: report.presentDays.toString(),
-                  icon: Iconsax.tick_circle,
-                  onPressed: () {},
-                ),
+                    title: 'Half Days',
+                    value: report.halfDays.toString(),
+                    icon: Iconsax.timer_1,
+                    onPressed: () {},
+                    flex: 5),
                 TProfileMenu(
-                  title: 'Half Days',
-                  value: report.halfDays.toString(),
-                  icon: Iconsax.timer_1,
-                  onPressed: () {},
-                ),
+                    title: 'Absent',
+                    value: report.absentDays.toString(),
+                    icon: Iconsax.close_circle,
+                    onPressed: () {},
+                    flex: 5),
                 TProfileMenu(
-                  title: 'Absent',
-                  value: report.absentDays.toString(),
-                  icon: Iconsax.close_circle,
-                  onPressed: () {},
-                ),
-                TProfileMenu(
-                  title: 'Paid Leave',
-                  value: (report.paidLeave - report.holidayCount).toString(),
-                  icon: Iconsax.coin,
-                  onPressed: () {},
-                ),
-                TProfileMenu(
-                  title: 'Holidays',
-                  value: report.holidayCount.toString(),
+                  title: 'No Clock Out Days',
+                  value: report.noClockOutDays.toString(),
                   icon: Iconsax.calendar_1,
                   onPressed: () {},
+                  flex: 5,
                 ),
+                TProfileMenu(
+                    title: 'Paid Leave',
+                    value: (report.paidLeave - report.holidayCount).toString(),
+                    icon: Iconsax.coin,
+                    onPressed: () {},
+                    flex: 5),
+                TProfileMenu(
+                    title: 'Holidays',
+                    value: report.holidayCount.toString(),
+                    icon: Iconsax.calendar_1,
+                    onPressed: () {},
+                    flex: 5),
 
                 const SizedBox(height: 10),
                 const Divider(),
                 const SizedBox(height: 10),
 
-// Hours
+                // Hours
                 TProfileMenu(
-                  title: 'Total Hours',
-                  value: report.totalHoursWorked.toStringAsFixed(2),
-                  icon: Iconsax.clock,
-                  onPressed: () {},
-                ),
+                    title: 'Total Hours',
+                    value: report.totalHoursWorked.toStringAsFixed(2),
+                    icon: Iconsax.clock,
+                    onPressed: () {},
+                    flex: 5),
                 TProfileMenu(
-                  title: 'Overtime Hours',
-                  value: report.totalOvertimeHours.toStringAsFixed(2),
-                  icon: Iconsax.clock_1,
-                  onPressed: () {},
-                ),
-                TProfileMenu(
-                  title: 'Overtime Pay',
-                  value: "₹${report.overtimePay.toStringAsFixed(2)}",
-                  icon: Iconsax.money,
-                  onPressed: () {},
-                ),
+                    title: 'Overtime Pay',
+                    value: "₹${report.overtimePay.toStringAsFixed(2)}",
+                    icon: Iconsax.money,
+                    onPressed: () {},
+                    flex: 5),
 
                 const SizedBox(height: 10),
                 const Divider(),
                 const SizedBox(height: 10),
 
-// Salary + Bonus
+                // Money
                 TProfileMenu(
-                  title: 'Salary Earned',
-                  value: "₹${report.salaryEarned.toStringAsFixed(2)}",
-                  icon: Iconsax.wallet,
-                  onPressed: () {},
-                ),
+                    title: 'Salary Earned',
+                    value: "₹${report.salaryEarned.toStringAsFixed(2)}",
+                    icon: Iconsax.wallet,
+                    onPressed: () {},
+                    flex: 5),
                 TProfileMenu(
-                  title: 'Bonus Earned',
-                  value: "₹${report.bonusEarned.toStringAsFixed(2)}",
-                  icon: Iconsax.gift,
-                  onPressed: () {},
-                ),
+                    title: 'Bonus Earned',
+                    value: "₹${report.bonusEarned.toStringAsFixed(2)}",
+                    icon: Iconsax.gift,
+                    onPressed: () {},
+                    flex: 5),
 
                 const SizedBox(height: 16),
                 Align(
@@ -609,7 +629,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
     );
   }
 
-  // ... (Keep existing showEmployeeDetails code exactly as is) ...
+  // UPDATED: Editable Employee Details
   void showEmployeeDetails(Employee employee) {
     final TextEditingController salaryController =
         TextEditingController(text: employee.salary.toString());
@@ -686,7 +706,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                 Text("Phone: ${employee.phoneNumber ?? "N/A"}"),
                 const SizedBox(height: TSizes.spaceBtwItems),
 
-                /// SALARY
+                // SALARY
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: TextField(
@@ -710,7 +730,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                   ),
                 ),
 
-                /// BONUS
+                // BONUS
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: TextField(
@@ -734,7 +754,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                   ),
                 ),
 
-                /// SHIFT TIMES (PICKERS, SECTION-STYLE)
+                // SHIFT TIMES
                 const SizedBox(height: TSizes.spaceBtwItems / 2),
                 Row(
                   children: [
@@ -750,12 +770,11 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                                 label: const Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text("Shift Start (24h)"),
+                                    Text("Shift Start"),
                                     SizedBox(width: 6),
                                     Icon(Icons.access_time, size: 18),
                                   ],
                                 ),
-                                suffixIcon: const Icon(Icons.schedule),
                                 filled: true,
                                 fillColor:
                                     isDark ? TColors.dark : TColors.light,
@@ -781,12 +800,11 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                                 label: const Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text("Shift End (24h)"),
+                                    Text("Shift End"),
                                     SizedBox(width: 6),
                                     Icon(Icons.access_time_filled, size: 18),
                                   ],
                                 ),
-                                suffixIcon: const Icon(Icons.schedule),
                                 filled: true,
                                 fillColor:
                                     isDark ? TColors.dark : TColors.light,
@@ -814,8 +832,14 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton.icon(
-                      icon: const Icon(Icons.save),
-                      label: const Text("Update"),
+                      icon: const Padding(
+                        padding: EdgeInsets.only(left: TSizes.spaceBtwItems),
+                        child: Icon(Icons.save),
+                      ),
+                      label: const Padding(
+                        padding: EdgeInsets.only(right: TSizes.spaceBtwItems),
+                        child: Text("Update"),
+                      ),
                       onPressed: () async {
                         try {
                           final salary =
@@ -823,7 +847,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                           final bonus =
                               double.tryParse(bonusController.text) ?? 0;
 
-                          // ---- SHIFT TIME VALIDATION (24h) ----
+                          // Validation
                           if (shiftStartController.text.isNotEmpty &&
                               shiftEndController.text.isNotEmpty) {
                             final startMin =
@@ -838,7 +862,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                                       "Shift start time must be before end time."),
                                 ),
                               );
-                              return; // stop update
+                              return;
                             }
                           }
 
@@ -883,7 +907,7 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
     );
   }
 
-  // ... (Keep existing showDayDetails code exactly as is) ...
+  // UPDATED: Editable Day Details (Admin Override)
   void showDayDetails(DailyAttendance day) {
     bool isPresent = day.status.toLowerCase() == "present";
     bool halfDay = day.status.toLowerCase() == "half-day";
@@ -986,8 +1010,11 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                     const SizedBox(height: 8),
                     Text("Current Status: ${day.status}"),
                     if (day.totalHours != null)
-                      Text("Total Hours: ${day.totalHours}"),
+                      Text(
+                        "Total Hours: ${day.totalHours!.floor()}h ${((day.totalHours! - day.totalHours!.floor()) * 60).round()}m",
+                      ),
                     const SizedBox(height: TSizes.spaceBtwItems),
+
                     // CLOCK IN
                     GestureDetector(
                       onTap: () => pickInOutTime(clockInController, day.date),
@@ -1083,12 +1110,18 @@ class _EmployeeInfoState extends State<EmployeeInfo> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: ElevatedButton.icon(
-                        icon: const Icon(Icons.save),
-                        label: const Text("Save"),
+                        icon: const Padding(
+                          padding: EdgeInsets.only(left: TSizes.spaceBtwItems),
+                          child: Icon(Icons.save),
+                        ),
+                        label: const Padding(
+                          padding: EdgeInsets.only(right: TSizes.spaceBtwItems),
+                          child: Text("Save"),
+                        ),
                         onPressed: () async {
                           try {
                             await employeeService.adminOverride(
-                              employeeId: widget.employeeId,
+                              employeeId: widget.employeeId ?? employeeId,
                               year: day.date.year,
                               month: day.date.month,
                               day: day.day,

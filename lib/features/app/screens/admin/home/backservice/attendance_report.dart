@@ -11,7 +11,7 @@ class AttendanceReport {
   final int presentDays;
   final int halfDays;
   final int absentDays;
-  final int lateDays;
+  final int noClockOutDays;
   final int paidLeave;
   final int holidayCount;
   final double totalHoursWorked;
@@ -31,7 +31,7 @@ class AttendanceReport {
     required this.presentDays,
     required this.halfDays,
     required this.absentDays,
-    required this.lateDays,
+    required this.noClockOutDays,
     required this.paidLeave,
     required this.holidayCount,
     required this.totalHoursWorked,
@@ -53,7 +53,7 @@ class AttendanceReport {
       presentDays: json['presentDays'] ?? 0,
       halfDays: json['halfDays'] ?? 0,
       absentDays: json['absentDays'] ?? 0,
-      lateDays: json['lateDays'] ?? 0,
+      noClockOutDays: json['noClockOutDays'] ?? 0,
       paidLeave: json['paidLeave'] ?? 0,
       holidayCount: json['holidayCount'] ?? 0,
       totalHoursWorked: (json['totalHoursWorked'] ?? 0).toDouble(),

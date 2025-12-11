@@ -9,12 +9,13 @@ class TProfileMenu extends StatelessWidget {
     required this.onPressed,
     required this.title,
     required this.value,
+    this.flex = 3,
   });
 
   final IconData icon;
   final VoidCallback onPressed;
   final String title, value;
-
+  final int flex;
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -25,7 +26,7 @@ class TProfileMenu extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              flex: 3,
+              flex: flex,
               child: Text(
                 title,
                 style: Theme.of(context).textTheme.bodySmall,

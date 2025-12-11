@@ -6,8 +6,7 @@ class Employee {
 
   final double salary;
   final double bonus;
-
-  /// NEW FIELDS
+  final bool? emailVerified;
   final String? shiftStart; // Example: "09:30"
   final String? shiftEnd; // Example: "18:00"
 
@@ -20,28 +19,26 @@ class Employee {
     required this.bonus,
     this.shiftStart,
     this.shiftEnd,
+    required this.emailVerified,
   });
 
   factory Employee.fromJson(Map<String, dynamic> json) {
     return Employee(
-      employeeId: json['employeeId'] ?? "",
-      fullName: json['fullName'] ?? "",
-      phoneNumber: json['phoneNumber'] ?? "",
-      companyEmail: json['companyEmail'] ?? "",
-      salary: json['salary'] != null
-          ? double.tryParse(json['salary'].toString()) ?? 0
-          : 0,
-      bonus: json['bonus'] != null
-          ? double.tryParse(json['bonus'].toString()) ?? 0
-          : 0,
-
-      /// shift mapping
-      shiftStart: json['shiftStart'],
-      shiftEnd: json['shiftEnd'],
-    );
+        employeeId: json['employeeId'] ?? "",
+        fullName: json['fullName'] ?? "",
+        phoneNumber: json['phoneNumber'] ?? "",
+        companyEmail: json['companyEmail'] ?? "",
+        salary: json['salary'] != null
+            ? double.tryParse(json['salary'].toString()) ?? 0
+            : 0,
+        bonus: json['bonus'] != null
+            ? double.tryParse(json['bonus'].toString()) ?? 0
+            : 0,
+        shiftStart: json['shiftStart'],
+        shiftEnd: json['shiftEnd'],
+        emailVerified: json['emailVerified']);
   }
 
-  /// OPTIONAL — if you want to send back JSON
   Map<String, dynamic> toJson() {
     return {
       "employeeId": employeeId,
